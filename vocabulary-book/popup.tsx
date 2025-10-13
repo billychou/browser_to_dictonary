@@ -8,11 +8,11 @@ function IndexPopup() {
   // 组件挂载时从存储中获取数据
   useEffect(() => {
     console.log("useEffect")
-    // chrome.storage.local.get(["savedData"], (result) => {
-    //   if (result.savedData) {
-    //     setData(result.savedData)
-    //   }
-    // })
+    chrome.storage.local.get(["savedData"], (result) => {
+      if (result.savedData) {
+        setData(result.savedData)
+      }
+    })
   }, [])
 
   // 数据变化时保存到存储
