@@ -18,7 +18,7 @@ function IndexPopup() {
   // 数据变化时保存到存储
   const handleSave = () => {
     console.log("handleSave")
-    // chrome.storage.local.set({ savedData: data })
+    chrome.storage.local.set({ savedData: data })
   }
 
   return (
