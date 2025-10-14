@@ -16,3 +16,6 @@ def init_app(app: Flask):
     """
     from controllers.console import bp as console_app_bp
     app.register_blueprint(console_app_bp)
+
+    from controllers.word import bp as word_app_bp
+    app.register_blueprint(word_app_bp)
