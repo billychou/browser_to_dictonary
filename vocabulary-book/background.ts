@@ -29,7 +29,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true
   } else if (request.action === "getVocabulary") {
     // 使用代理方式绕过 CORS 限制
-    fetch("http://127.0.0.1:7001/api/dictionary/hello")
+    fetch(
+      `http://127.0.0.1:7001/api/dictionary/hello?word=${encodeURIComponent(request.data || "")}`
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("从API获取的数据:", data)
