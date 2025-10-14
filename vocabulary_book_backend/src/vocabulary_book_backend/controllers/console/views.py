@@ -17,10 +17,10 @@ class HelloWorldResource(Resource):
         get
         :return:
         """
-        # parser = reqparse.RequestParser()
-        # parser.add_argument('word', type=str, required=False)
-        # args = parser.parse_args()
-        word = request.args.get("word", None)
+        parser = reqparse.RequestParser()
+        parser.add_argument('word', type=str, required=False, default=None, location='args')
+        args = parser.parse_args()
+        word = args.get("word")
         return dict(
             success=True,
             message="Hello World",
