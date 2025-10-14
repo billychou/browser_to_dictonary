@@ -8,8 +8,11 @@ Copyright: @sanfendi
 """
 import logging
 import time
-from vb_app import VbApp
+
+from flask_cors import CORS
+
 from configs import app_config
+from vb_app import VbApp
 
 
 def create_flask_app_with_configs() -> VbApp:
@@ -23,15 +26,22 @@ def create_flask_app_with_configs() -> VbApp:
 
 
 def initialize_extensions(app: VbApp):
-    from extensions import (
-        ext_database,
-        ext_blueprints
+    from extensions import ext_database, ext_blueprints
+
+    # 初始化全局CORS配置
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": "chrome-extension://bpcmapeoloepbomiddaidikkbbaeodjn",
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization", "Accept"],
+                "supports_credentials": True,
+            }
+        },
     )
 
-    extensions = [
-        ext_database,
-        ext_blueprints
-    ]
+    extensions = [ext_database, ext_blueprints]
     for ext in extensions:
         short_name = ext.__name__.split(".")[-1]
         is_enabled = ext.is_enabled() if hasattr(ext, "is_enabled") else True
@@ -59,4 +69,3 @@ def create_app() -> VbApp:
             f"Finished create_app ({round((end_time - start_time) * 1000, 2)} ms)"
         )
     return app
-

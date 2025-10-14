@@ -24,7 +24,7 @@ function IndexPopup() {
     // 发送数据到后台脚本，由后台脚本处理API请求
     chrome.runtime
       .sendMessage({
-        action: "getVocabulary",
+        action: "saveVocabulary",
         data: data
       })
       .then((response) => {
