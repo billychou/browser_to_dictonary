@@ -4,6 +4,7 @@ import "./style.css"
 
 function IndexPopup() {
   const [data, setData] = useState("")
+  const [returnData, setReturnData] = useState("")
 
   // 组件挂载时从存储中获取数据
   useEffect(() => {
@@ -29,6 +30,7 @@ function IndexPopup() {
       .then((response) => {
         if (response?.success) {
           console.log("API保存成功")
+          setReturnData(response.data)
         } else {
           console.log("API保存失败:", response?.error)
         }
@@ -54,7 +56,7 @@ function IndexPopup() {
       </button>
       <div className="mt-4 p-3 bg-gray-100 rounded-md text-left">
         <p className="text-sm text-gray-600">当前输入:</p>
-        <p className="mt-1">{data}</p>
+        <p className="mt-1">{returnData}</p>
       </div>
     </div>
   )
