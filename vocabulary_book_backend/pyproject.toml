@@ -1,0 +1,22 @@
+[project]
+name = "vocabulary-book-backend"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "billychou",email = "zsc1528@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "flask (>=3.1.2,<4.0.0)",
+    "flask-cors (>=6.0.1,<7.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+packages = [{include = "vocabulary_book_backend", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -19,6 +19,23 @@ function IndexPopup() {
   const handleSave = () => {
     console.log("handleSave")
     chrome.storage.local.set({ savedData: data })
+
+    // 发送数据到后台脚本，由后台脚本处理API请求
+    chrome.runtime
+      .sendMessage({
+        action: "getVocabulary",
+        data: data
+      })
+      .then((response) => {
+        if (response?.success) {
+          console.log("API保存成功")
+        } else {
+          console.log("API保存失败:", response?.error)
+        }
+      })
+      .catch((error) => {
+        console.log("发送消息失败:", error)
+      })
   }
 
   return (
