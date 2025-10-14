@@ -31,7 +31,8 @@
       "https://*/*"
     ],
     "permissions": [
-      "storage"
+      "storage",
+      "contextMenus"
     ],
     "background": {
       "service_worker": "background.ts"
