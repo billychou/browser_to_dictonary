@@ -25,10 +25,12 @@ def create_flask_app_with_configs() -> VbApp:
     return vb_app
 
 
-def initialize_extensions(app: VbApp):
-    from extensions import ext_database, ext_blueprints
-
-    # 初始化全局CORS配置
+def cors_app(app: VbApp):
+    """
+    add cors to app
+    :param app:
+    :return:
+    """
     CORS(
         app,
         resources={
@@ -40,6 +42,10 @@ def initialize_extensions(app: VbApp):
             }
         },
     )
+
+
+def initialize_extensions(app: VbApp):
+    from extensions import ext_database, ext_blueprints
 
     extensions = [ext_database, ext_blueprints]
     for ext in extensions:
@@ -62,6 +68,7 @@ def initialize_extensions(app: VbApp):
 def create_app() -> VbApp:
     start_time = time.perf_counter()
     app = create_flask_app_with_configs()
+    cors_app(app)
     initialize_extensions(app)
     end_time = time.perf_counter()
     if app_config.DEBUG:

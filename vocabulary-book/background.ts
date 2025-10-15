@@ -13,14 +13,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     const selectedText = info.selectionText
 
     // 发送选中的文本到 API
-    fetch("http://127.0.0.1:7001/api/word", {
+    fetch("http://127.0.0.1:7001/api/word/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         word: selectedText,
-        timestamp: new Date().toISOString()
+        uid: "123"
       })
     })
       .then((response) => {
@@ -47,7 +47,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "saveVocabulary") {
     // 模拟发送 POST 请求到 /api/ 端点
-    fetch("http://127.0.0.1:7001/api/word", {
+    fetch("http://127.0.0.1:7001/api/word/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -76,7 +76,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === "getVocabulary") {
     // 使用代理方式绕过 CORS 限制
     fetch(
-      `http://127.0.0.1:7001/api/dictionary/hello?word=${encodeURIComponent(request.data || "")}`
+      `http://127.0.0.1:7001/api/word/?word=${encodeURIComponent(request.data || "")}`
     )
       .then((response) => response.json())
       .then((data) => {
