@@ -60,6 +60,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then((response) => {
         if (response.ok) {
           console.log("单词已成功发送到API")
+          // chrome.tabs.sendMessage(tab.id, {
+          //   action: "showNotification",
+          //   message: `已保存词汇: ${selectedText}`
+          // })
           sendResponse({ success: true })
         } else {
           console.error("发送到API失败:", response.status)

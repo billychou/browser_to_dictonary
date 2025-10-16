@@ -42,7 +42,7 @@ function IndexPopup() {
 
   return (
     <div className="p-4 w-80">
-      <h2 className="text-xl font-bold mb-4 text-left">词汇书</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">词汇书</h2>
       <input
         onChange={(e) => setData(e.target.value)}
         value={data}
