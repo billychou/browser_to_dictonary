@@ -25,3 +25,6 @@ class Word(db.Model):
         server_default=db.func.now(),
         onupdate=db.func.now(),
     )
+
+    def __repr__(self):
+        return f"<VocabularyWord id={self.id}>"
