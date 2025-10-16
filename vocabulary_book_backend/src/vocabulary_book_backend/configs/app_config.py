@@ -6,12 +6,13 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/10/14
 Copyright: @sanfendi
 """
-from .deploy import DeploymentConfig
-from .middleware import DatabaseConfig
 from pydantic_settings import SettingsConfigDict
 
+from .deploy import DeploymentConfig
+from .middleware import MiddlewareConfig
 
-class AppConfig(DeploymentConfig, DatabaseConfig):
+
+class AppConfig(DeploymentConfig, MiddlewareConfig):
     model_config = SettingsConfigDict(
         # read from dotenv format config file
         env_file=".env",
@@ -19,5 +20,3 @@ class AppConfig(DeploymentConfig, DatabaseConfig):
         # ignore extra attributes
         extra="ignore",
     )
-
-

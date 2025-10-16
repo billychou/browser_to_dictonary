@@ -45,9 +45,15 @@ def cors_app(app: VbApp):
 
 
 def initialize_extensions(app: VbApp):
-    from extensions import ext_database, ext_blueprints
+    from extensions import (
+        ext_database,
+        ext_blueprints,
+        ext_commands,
+        ext_redis,
+        ext_migrate,
+    )
 
-    extensions = [ext_database, ext_blueprints]
+    extensions = [ext_database, ext_blueprints, ext_commands, ext_redis, ext_migrate]
     for ext in extensions:
         short_name = ext.__name__.split(".")[-1]
         is_enabled = ext.is_enabled() if hasattr(ext, "is_enabled") else True
@@ -65,7 +71,22 @@ def initialize_extensions(app: VbApp):
             )
 
 
+def create_migrations_app():
+    app = create_flask_app_with_configs()
+    from extensions import ext_database, ext_migrate
+
+    # Initialize only required extensions
+    ext_database.init_app(app)
+    ext_migrate.init_app(app)
+
+    return app
+
+
 def create_app() -> VbApp:
+    """
+    Create app
+    :return: VbApp
+    """
     start_time = time.perf_counter()
     app = create_flask_app_with_configs()
     cors_app(app)
