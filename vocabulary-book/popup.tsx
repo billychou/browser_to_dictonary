@@ -8,7 +8,6 @@ function IndexPopup() {
 
   // 组件挂载时从存储中获取数据
   useEffect(() => {
-    console.log("useEffect")
     chrome.storage.local.get(["savedData"], (result) => {
       if (result.savedData) {
         setData(result.savedData)
@@ -18,7 +17,6 @@ function IndexPopup() {
 
   // 数据变化时保存到存储
   const handleSave = () => {
-    console.log("handleSave")
     chrome.storage.local.set({ savedData: data })
 
     // 发送数据到后台脚本，由后台脚本处理API请求
