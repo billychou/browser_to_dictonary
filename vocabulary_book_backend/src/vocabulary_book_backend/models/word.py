@@ -4,7 +4,7 @@
 File: word.py
 Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/10/14
-Copyright: @三分地技术有限公司
+Copyright: @sanfendi
 """
 from .engine import db
 

@@ -63,8 +63,7 @@ def init_app(app: VbApp):
 
     redis_params: dict[str, Any] = {
         "username": app_config.REDIS_USERNAME,
-        "password": app_config.REDIS_PASSWORD
-        or None,  # Temporary fix for empty password
+        "password": app_config.REDIS_PASSWORD or None,  # Temporary fix for empty password
         "db": app_config.REDIS_DB,
         "encoding": "utf-8",
         "encoding_errors": "strict",
