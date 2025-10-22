@@ -16,7 +16,7 @@ from models.word import Word
 
 class VocabularyService:
     @staticmethod
-    def add(**kwargs):
+    def add(**kwargs) -> Word:
         """
         添加单词
         :param kwargs:
@@ -40,16 +40,39 @@ class VocabularyService:
         return word
 
     @staticmethod
-    def delete(id: int = None):
+    def delete(id: int):
         """
         delete
+        :param id: int
         :return:
         """
-        pass
+        word = db.session.execute(select(Word).where(Word.id == id)).first()
+        if not word:
+            raise Exception("word not exist")
+        db.session.delete(word)
+        db.session.commit()
 
     @staticmethod
-    def update(**kwargs):
-        pass
+    def update(**kwargs) -> Word:
+        """
+        update
+        :param kwargs:
+        :return:
+        """
+        vocabulary_id = kwargs.get("id", None)
+        if vocabulary_id is None:
+            raise Exception("Invalid parameters")
+        word = db.session.execute(select(Word).where(Word.id == vocabulary_id)).first()
+        if not word:
+            raise Exception("word not exist")
+
+        for key, value in kwargs.items():
+            if key == "id":
+                continue
+            setattr(Word, key, value)
+            word.gmt_update = db.func.now()
+        db.session.add(word)
+        db.session.commit()
 
     @staticmethod
     def query(**kwargs) -> List[Word]:
