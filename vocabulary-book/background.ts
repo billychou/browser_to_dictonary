@@ -12,7 +12,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     // 获取选中的文本
     const selectedText = info.selectionText
 
-    // 发送选中的文本到 API
+    // 向内容脚本发送消息以高亮选中的文本
+    if (tab && tab.id) {
+      chrome.tabs.sendMessage(tab.id, {
+        action: "highlightText",
+        text: selectedText
+      })
+    }
+
     fetch("http://127.0.0.1:7001/api/word/", {
       method: "POST",
       headers: {
