@@ -12,7 +12,7 @@ function highlightText(selectedText: string) {
   style.id = 'browser-extension-highlight-style';
   style.textContent = `
     .browser-extension-highlight {
-      background-color: red !important;
+      background-color: lightcoral !important;
     }
   `;
   document.head.appendChild(style);
