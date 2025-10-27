@@ -26,14 +26,14 @@ class VocabularyService:
         word = kwargs.get("word", None)
         if uid is None or word is None:
             raise Exception("Invalid parameters")
-        word = db.session.execute(
+        result = db.session.execute(
             select(Word).where(Word.uid == uid, Word.word == word)
-        ).first()
-        if word:
-            word.gmt_update = db.func.now()
-            db.session.add(word)
+        ).scalars().first()
+        if result:
+            result.gmt_update = db.func.now()
+            db.session.add(result)
             db.session.commit()
-            return word
+            return result
         word = Word(**kwargs)
         db.session.add(word)
         db.session.commit()
@@ -46,9 +46,10 @@ class VocabularyService:
         :param id: int
         :return:
         """
-        word = db.session.execute(select(Word).where(Word.id == id)).first()
-        if not word:
+        result = db.session.execute(select(Word).where(Word.id == id)).first()
+        if not result:
             raise Exception("word not exist")
+        word = result[0] if isinstance(result, tuple) else result
         db.session.delete(word)
         db.session.commit()
 
@@ -62,17 +63,20 @@ class VocabularyService:
         vocabulary_id = kwargs.get("id", None)
         if vocabulary_id is None:
             raise Exception("Invalid parameters")
-        word = db.session.execute(select(Word).where(Word.id == vocabulary_id)).first()
-        if not word:
+        result = db.session.execute(select(Word).where(Word.id == vocabulary_id)).first()
+        if not result:
             raise Exception("word not exist")
+        
+        word = result[0] if isinstance(result, tuple) else result
 
         for key, value in kwargs.items():
             if key == "id":
                 continue
-            setattr(Word, key, value)
-            word.gmt_update = db.func.now()
+            setattr(word, key, value)
+        word.gmt_update = db.func.now()
         db.session.add(word)
         db.session.commit()
+        return word
 
     @staticmethod
     def query(**kwargs) -> List[Word]:
