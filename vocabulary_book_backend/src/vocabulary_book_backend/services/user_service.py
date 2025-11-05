@@ -64,7 +64,24 @@ class UserService(object):
         :param token:
         :return:
         """
-        pass
+        try:
+            # 使用配置文件中的密钥进行解码
+            secret_key = current_app.config.get('SECRET_KEY', 'default_secret_key')
+            payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+            user_id = payload.get('user_id')
+            
+            # 检查用户是否存在
+            user = db.session.query(User).filter(User.id == user_id).first()
+            if not user:
+                return None
+                
+            return user
+        except jwt.ExpiredSignatureError:
+            # Token过期
+            return None
+        except jwt.InvalidTokenError:
+            # Token无效
+            return None
 
     def send_sms_code(self, phone):
         """
@@ -76,7 +93,6 @@ class UserService(object):
         # 这里应该调用实际的短信服务API发送验证码
         # 调用短信服务商发送验证码
         print(f"Sending SMS code {code} to {phone}")
-
         # 暂时只做模拟处理，实际项目中需要替换为真实的短信服务
         # TODO: 实际项目中应使用 Redis 或其他缓存系统存储验证码
         # key 设计采用统一前缀 + 手机号的形式，便于管理和清理
