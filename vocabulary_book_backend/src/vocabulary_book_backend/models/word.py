@@ -6,6 +6,10 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/10/14
 Copyright: @sanfendi
 """
+from datetime import datetime
+
+from sqlalchemy.orm import Mapped
+
 from .engine import db
 
 
@@ -15,11 +19,11 @@ class Word(db.Model):
         db.PrimaryKeyConstraint("id", name="vocabulary_pkid"),
         db.UniqueConstraint("uid", "word", name="vocabulary_unique"),
     )
-    id = db.Column(db.Integer, nullable=False, autoincrement=True)
-    uid = db.Column(db.String(64), nullable=False)
-    word = db.Column(db.String(64), nullable=False)
-    gmt_create = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
-    gmt_update = db.Column(
+    id: Mapped[int] = db.Column(db.Integer, nullable=False, autoincrement=True)
+    uid: Mapped[str] = db.Column(db.String(64), nullable=False)
+    word: Mapped[str] = db.Column(db.String(64), nullable=False)
+    gmt_create: Mapped[datetime] = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    gmt_update: Mapped[datetime] = db.Column(
         db.DateTime,
         nullable=False,
         server_default=db.func.now(),

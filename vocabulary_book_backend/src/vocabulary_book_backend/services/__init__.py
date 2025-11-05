@@ -6,3 +6,6 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/10/14
 Copyright: @sanfendi
 """
+from .vocabulary_service import VocabularyService
+from .user_service import UserService
+from .wechat_service import WeChatService

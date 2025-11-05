@@ -7,3 +7,4 @@ Date: 2025/10/14
 Copyright: @sanfendi
 """
 from .engine import db
+from .user import User
