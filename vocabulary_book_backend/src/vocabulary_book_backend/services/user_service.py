@@ -14,6 +14,8 @@ import jwt
 from flask import current_app
 
 from extensions.ext_redis import redis_client
+from libs.constants import CACHE_SMS_CODE_PREFIX
+from libs.constants import CACHE_SMS_CODE_TIMEOUT
 from models import db
 from models.user import User
 
@@ -43,6 +45,13 @@ class UserService(object):
         if not user_info:
             raise Exception("用户不存在")
         return user_info
+
+    def get_user_info(self, token):
+        """
+        根据token获取用户信息
+        :param token:
+        :return:
+        """
 
     def generate_token(self, user_id):
         """
@@ -85,8 +94,9 @@ class UserService(object):
 
     def send_sms_code(self, phone):
         """
-        :param phone:
-        :return:
+        发送短信验证码
+        :param phone: 手机号码
+        :return: 验证码
         """
         # 生成6位随机验证码
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
@@ -94,11 +104,14 @@ class UserService(object):
         # 调用短信服务商发送验证码
         print(f"Sending SMS code {code} to {phone}")
         # 暂时只做模拟处理，实际项目中需要替换为真实的短信服务
-        # TODO: 实际项目中应使用 Redis 或其他缓存系统存储验证码
+        # 验证码建议保存在缓存系统中（如Redis），而非数据库
+        # 原因：1. 验证码时效性短，无需持久化存储
+        #      2. 缓存系统支持自动过期，管理更方便
+        #      3. 减少数据库压力，提高系统性能
         # key 设计采用统一前缀 + 手机号的形式，便于管理和清理
         # 过期时间设置为5分钟(300秒)，符合业界最佳实践
-        cache_key = f"SMS_CODE:{phone}"
-        redis_client.set(cache_key, code, timeout=300)
+        cache_key = f"{CACHE_SMS_CODE_PREFIX}:{phone}"
+        redis_client.set(cache_key, code, timeout=CACHE_SMS_CODE_TIMEOUT)
         return code
 
     def verify_sms_code(self, phone, code):

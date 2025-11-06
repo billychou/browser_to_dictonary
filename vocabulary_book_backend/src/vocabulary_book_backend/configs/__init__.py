@@ -7,8 +7,7 @@ Date: 2025/10/14
 Copyright: @sanfendi
 """
 
-from .app_config import AppConfig
+from .app_config_factory import AppConfig
 
 
 app_config = AppConfig()
-
