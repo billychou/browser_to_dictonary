@@ -7,6 +7,8 @@ Date: 2025/11/6
 Copyright: @sanfendi
 """
 import sys
+from typing import Optional, Dict
+
 sys.path.append("/Users/songchuan.zhou/Src/browser_to_dictonary/vocabulary_book_backend/src/vocabulary_book_backend")
 
 import logging
@@ -52,7 +54,7 @@ class SmsClient:
         return Dypnsapi20170525Client(config)
 
     @staticmethod
-    def send(code, phone) -> None:
+    def send(code: str, phone: str) -> Optional[Dict]:
         """
         发送短信服务
         :param code:手机验证码
@@ -74,3 +76,4 @@ class SmsClient:
             return ret
         except Exception as error:
             logger.error(error.message)
+            raise Exception("发送短信验证码失败")

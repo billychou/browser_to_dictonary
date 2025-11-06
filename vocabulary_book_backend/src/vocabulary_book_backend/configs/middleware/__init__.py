@@ -8,10 +8,11 @@ Copyright: @sanfendi
 """
 
 from .database_config import DatabaseConfig
+from .jwt_config import JwtConfig
 from .redis_config import RedisConfig
 
 
-class MiddlewareConfig(DatabaseConfig, RedisConfig):
+class MiddlewareConfig(DatabaseConfig, RedisConfig, JwtConfig):
     """
     中间件配置
     """

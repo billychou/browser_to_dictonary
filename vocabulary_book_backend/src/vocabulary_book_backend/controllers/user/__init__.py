@@ -16,4 +16,4 @@ api = ExternalApi(bp)
 from .views import UserLoginResource, UserResource
 
 api.add_resource(UserResource, "")
-api.add_resource(UserLoginResource, "/login")
+api.add_resource(UserLoginResource, "/login/", "/login/<action_type>/")
