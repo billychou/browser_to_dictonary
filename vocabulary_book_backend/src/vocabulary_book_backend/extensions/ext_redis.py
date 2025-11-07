@@ -6,8 +6,9 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/10/16
 Copyright: @sanfendi
 """
-
-from typing import Any, Union
+from datetime import timedelta
+from typing import Any, Union, Optional
+from typing import TYPE_CHECKING
 
 import redis
 from redis.cluster import ClusterNode, RedisCluster
@@ -16,6 +17,9 @@ from redis.sentinel import Sentinel
 
 from configs import app_config
 from vb_app import VbApp
+
+if TYPE_CHECKING:
+    from redis.lock import Lock
 
 
 class RedisClientWrapper:
@@ -45,6 +49,71 @@ class RedisClientWrapper:
     def initialize(self, client):
         if self._client is None:
             self._client = client
+
+    if TYPE_CHECKING:
+        # Type hints for IDE support and static analysis
+        # These are not executed at runtime but provide type information
+        def get(self, name: Union[str, bytes]) -> Any: ...
+
+        def set(
+                self,
+                name: Union[str, bytes],
+                value: Any,
+                ex: Union[int, None] = None,
+                px: Union[int, None] = None,
+                nx: bool = False,
+                xx: bool = False,
+                keepttl: bool = False,
+                get: bool = False,
+                exat: Union[int, None] = None,
+                pxat: Union[int, None] = None,
+        ) -> Any: ...
+
+        def setex(self, name: Union[str, bytes], time: Union[int, timedelta], value: Any) -> Any: ...
+
+        def setnx(self, name: Union[str, bytes], value: Any) -> Any: ...
+
+        def delete(self, *names: Union[str, bytes]) -> Any: ...
+
+        def incr(self, name: Union[str, bytes], amount: int = 1) -> Any: ...
+
+        def expire(
+                self,
+                name: Union[str, bytes],
+                time: Union[int, timedelta],
+                nx: bool = False,
+                xx: bool = False,
+                gt: bool = False,
+                lt: bool = False,
+        ) -> Any: ...
+
+        def lock(
+                self,
+                name: str,
+                timeout: Optional[float] = None,
+                sleep: float = 0.1,
+                blocking: bool = True,
+                blocking_timeout: Optional[float] = None,
+                thread_local: bool = True,
+        ) -> Lock: ...
+
+        def zadd(
+                self,
+                name: Union[str, bytes],
+                mapping: dict[Union[str, bytes, int, float], Union[float, int, str, bytes]],
+                nx: bool = False,
+                xx: bool = False,
+                ch: bool = False,
+                incr: bool = False,
+                gt: bool = False,
+                lt: bool = False,
+        ) -> Any: ...
+
+        def zremrangebyscore(self, name: Union[str, bytes], min: Union[float, str], max: Union[float, str]) -> Any: ...
+
+        def zcard(self, name: Union[str, bytes]) -> Any: ...
+
+        def getdel(self, name: Union[str, bytes]) -> Any: ...
 
     def __getattr__(self, item):
         if self._client is None:

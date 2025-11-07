@@ -8,7 +8,7 @@ Copyright: @sanfendi
 """
 import random
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 import jwt
 
@@ -22,7 +22,7 @@ from models.user import User
 
 
 class UserService(object):
-    def login_by_phone(self, phone: str, code: str) -> Optional[Dict]:
+    def login_by_phone(self, phone: str, code: str) -> Optional[Dict[str, Any]]:
         """
         :param phone: 手机号
         :param code: 验证码
@@ -47,7 +47,7 @@ class UserService(object):
             db.session.flush()
             db.session.commit()
         token = self.generate_token(user.id)
-        return token
+        return dict(user=user, token=token)
 
     @staticmethod
     def get_user_by_phone(phone: str) -> User:
