@@ -31,11 +31,12 @@ class UserService(object):
         if not phone or not code:
             raise Exception("手机号和验证码不能为空")
 
-        exist_code = redis_client.get(f"{CACHE_SMS_CODE_PREFIX}:{phone}")
-        if not exist_code:
+        exist_code: bytes = redis_client.get(f"{CACHE_SMS_CODE_PREFIX}:{phone}")
+        exist_code_str = exist_code.decode("utf-8")
+        if not exist_code_str:
             raise Exception("验证码已过期")
 
-        if exist_code != code:
+        if exist_code_str != code:
             raise Exception("无效的验证码")
 
         user = db.session.query(User).filter(User.phone == phone).first()

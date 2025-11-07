@@ -10,4 +10,3 @@ Copyright: @sanfendi
 CACHE_SMS_CODE_PREFIX = "BCZ:SMS_CODE"
 # 短信验证码缓存有效期300s
 CACHE_SMS_CODE_TIMEOUT = 300
-
