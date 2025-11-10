@@ -39,3 +39,14 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User id={self.id}, phone={self.phone}, wechat_openid={self.wechat_openid}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "phone": self.phone,
+            "wechat_openid": self.wechat_openid,
+            "wechat_unionid": self.wechat_unionid,
+            "nickname": self.nickname,
+            "avatar": self.avatar,
+            "is_active": self.is_active,
+        }

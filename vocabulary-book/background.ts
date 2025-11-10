@@ -99,5 +99,48 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ error: error.message })
       })
     return true
+  } else if (request.action === "getSmsCode") {
+    // 获取短信验证码
+    fetch("http://127.0.0.1:7001/api/user/login/sms_send/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        phone: request.phone
+      })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("获取验证码结果:", data)
+        sendResponse(data)
+      })
+      .catch((error) => {
+        console.error("获取验证码失败:", error)
+        sendResponse({ success: false, message: "获取验证码失败" })
+      })
+    return true
+  } else if (request.action === "userLogin") {
+    // 用户登录
+    fetch("http://127.0.0.1:7001/api/user/login/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        phone: request.phone,
+        code: request.code
+      })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("登录结果:", data)
+        sendResponse(data)
+      })
+      .catch((error) => {
+        console.error("登录失败:", error)
+        sendResponse({ success: false, message: "登录失败" })
+      })
+    return true
   }
 })

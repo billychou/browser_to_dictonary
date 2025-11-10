@@ -47,7 +47,7 @@ class UserService(object):
             db.session.flush()
             db.session.commit()
         token = self.generate_token(user.id)
-        return dict(user=user, token=token)
+        return dict(user_info=user.to_dict(), token=token)
 
     @staticmethod
     def get_user_by_phone(phone: str) -> User:
