@@ -111,6 +111,9 @@ class UserService(object):
         :param phone: 手机号码
         :return: 验证码
         """
+        exist_code: bytes = redis_client.get(f"{CACHE_SMS_CODE_PREFIX}:{phone}")
+        if exist_code:
+            raise Exception("验证码已发送，请稍后再试")
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         print(f"Sending SMS code {code} to {phone}")
         SmsClient.send(code, phone)
