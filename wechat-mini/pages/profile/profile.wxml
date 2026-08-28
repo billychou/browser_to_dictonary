@@ -47,6 +47,15 @@
     <view class="muted api-tip">留空则使用默认地址；生产环境需 HTTPS 并在微信公众平台配置合法域名</view>
   </view>
 
+  <!-- 数据导出 -->
+  <view class="card">
+    <view class="card-title">数据导出</view>
+    <view class="export-row">
+      <view class="export-text muted">导出全部生词为 CSV，可用 Excel 打开或导入 Anki</view>
+      <view class="api-save" bindtap="exportCsv">导出</view>
+    </view>
+  </view>
+
   <!-- 说明 -->
   <view class="card">
     <view class="card-title">数据说明</view>

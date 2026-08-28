@@ -40,6 +40,25 @@ function IndexPopup() {
     if (loggedIn) loadWords()
   }, [loggedIn, loadWords])
 
+  const handleExport = () => {
+    chrome.runtime.sendMessage({ action: "exportVocabulary" }, (response) => {
+      if (response?.success) {
+        const blob = new Blob([response.data], {
+          type: "text/csv;charset=utf-8"
+        })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `vocabulary_${new Date().toISOString().slice(0, 10)}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+        setPageMessage("CSV 已开始下载")
+      } else {
+        setPageMessage(response?.message || "导出失败")
+      }
+    })
+  }
+
   const handleSave = () => {
     const word = data.trim()
     if (!word) {
@@ -182,7 +201,14 @@ function IndexPopup() {
         <div className="mt-3 text-sm text-gray-600">{pageMessage}</div>
       )}
       <div className="mt-4">
-        <p className="text-sm text-gray-500 mb-2">我的词汇（{total}）</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm text-gray-500">我的词汇（{total}）</p>
+          <button
+            onClick={handleExport}
+            className="text-xs text-blue-400 hover:text-blue-600">
+            导出 CSV
+          </button>
+        </div>
         {words.length === 0 ? (
           <p className="text-sm text-gray-400">还没有保存的词汇</p>
         ) : (

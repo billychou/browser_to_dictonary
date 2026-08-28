@@ -43,7 +43,7 @@
 
 1. **商店上架**：`submit.yml` 已具备 bpp 自动提交能力，补齐商店素材（截图、描述、隐私声明）后发布；同步考虑 Edge / Firefox。
 2. **~~间隔复习~~（已完成）**：小程序端（`wechat-mini`）已实现艾宾浩斯复习卡片（认识/模糊/不认识，间隔 当天→1→2→4→7→15 天）；进度字段（`stage/due/review_count/lapse_count/last_review`）已落在 `vocabulary_word`，由 `PUT /api/word/<id>/review` 统一排期，跨设备同步；复习卡片已展示 P1-3 词典释义。
-3. **数据导出**：支持导出 CSV / Anki 牌组，降低用户迁移顾虑。
+3. **~~数据导出~~（已完成）**：`GET /api/word/export/` 导出本人全部词汇（UTF-8 BOM CSV，含音标/释义/进度，Excel/Anki 可导入）；扩展 popup「导出 CSV」与小程序「我的-数据导出」均已接入。
 4. **划词即查**：选中即弹出小浮层显示释义 + "加入词汇书"按钮，比右键菜单少一步。
 5. **多端同步**：提供 Web 端词汇书页面，账号数据天然云端化（依赖 P0-1 完成）。
 6. **~~小程序微信一键登录~~（已完成）**：`POST /api/user/login/wechat/` 已接通 `jscode2session`（code → openid 登录/注册，签发 JWT），小程序端微信一键登录可用；需在 `.env` 配置 `WECHAT_MINI_APP_ID` / `WECHAT_MINI_APP_SECRET`，未配置时自动回退短信登录。

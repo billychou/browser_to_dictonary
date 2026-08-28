@@ -57,6 +57,17 @@
   gap: 20rpx;
 }
 
+.export-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.export-text {
+  flex: 1;
+  line-height: 1.6;
+}
+
 .api-input {
   flex: 1;
   font-size: 26rpx;
