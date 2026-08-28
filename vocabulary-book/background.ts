@@ -153,6 +153,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
         break
       }
+      case "lookupWord": {
+        try {
+          const data = await apiFetch(
+            `/api/dictionary?word=${encodeURIComponent(request.word || "")}`
+          )
+          sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
       case "exportVocabulary": {
         // 导出 CSV 为文本流，直接 fetch 而非走 JSON 封装
         try {
