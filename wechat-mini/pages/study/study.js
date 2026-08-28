@@ -18,6 +18,9 @@ Page({
     currentStage: 0,
     stageTip: "",
     revealed: false,
+    currentExample: "",
+    defLoading: false,
+    defFailed: false,
     sessionReviewed: 0,
     sessionMastered: 0
   },
@@ -82,12 +85,48 @@ Page({
       currentDays: daysAgo(current.gmt_create),
       currentReviews: current.review_count || 0,
       currentStage: stage,
+      currentExample: this.firstExample(current),
+      defLoading: false,
+      defFailed: false,
       stageTip: mastered
         ? "已达最高等级"
         : "认识后 " +
           review.INTERVAL_DAYS[Math.min(stage + 1, review.MASTERED_STAGE)] +
           " 天后再复习"
     })
+  },
+
+  /** 取释义详情中的第一个例句 */
+  firstExample(word) {
+    for (const meaning of word.detail || []) {
+      for (const d of meaning.definitions || []) {
+        if (d.example) return d.example
+      }
+    }
+    return ""
+  },
+
+  /** 补查词典释义（保存时未查到或查询失败的词） */
+  async fetchDefinition() {
+    const current = this.queue[0]
+    if (!current || this.data.defLoading) return
+    this.setData({ defLoading: true })
+    try {
+      const updated = await api.refreshDefinition(current.id)
+      Object.assign(current, updated)
+      const idx = this.words.findIndex((w) => w.id === updated.id)
+      if (idx >= 0) this.words[idx] = current
+      this.setData({
+        current: { ...current },
+        currentExample: this.firstExample(current),
+        defFailed: false
+      })
+    } catch (err) {
+      this.setData({ defFailed: true })
+      wx.showToast({ title: err.message, icon: "none" })
+    } finally {
+      this.setData({ defLoading: false })
+    }
   },
 
   reveal() {
