@@ -45,7 +45,7 @@
 2. **~~间隔复习~~（已完成）**：小程序端（`wechat-mini`）已实现艾宾浩斯复习卡片（认识/模糊/不认识，间隔 当天→1→2→4→7→15 天）；进度字段（`stage/due/review_count/lapse_count/last_review`）已落在 `vocabulary_word`，由 `PUT /api/word/<id>/review` 统一排期，跨设备同步；复习卡片已展示 P1-3 词典释义。
 3. **~~数据导出~~（已完成）**：`GET /api/word/export/` 导出本人全部词汇（UTF-8 BOM CSV，含音标/释义/进度，Excel/Anki 可导入）；扩展 popup「导出 CSV」与小程序「我的-数据导出」均已接入。
 4. **~~划词即查~~（已完成）**：选中英文单词/短语即弹浮层，展示音标/释义并可一键加入词汇书；后端新增 `GET /api/dictionary?word=`（JWT + 每用户 30 次/分钟频控）。
-5. **多端同步**：提供 Web 端词汇书页面，账号数据天然云端化（依赖 P0-1 完成）。
+5. **多端同步（已由小程序覆盖）**：微信小程序端（`wechat-mini`）与扩展共用同一账号与数据源，手机/桌面随时访问；如需无微信环境的 Web 端词汇书页面可另行立项。
 6. **~~小程序微信一键登录~~（已完成）**：`POST /api/user/login/wechat/` 已接通 `jscode2session`（code → openid 登录/注册，签发 JWT），小程序端微信一键登录可用；需在 `.env` 配置 `WECHAT_MINI_APP_ID` / `WECHAT_MINI_APP_SECRET`，未配置时自动回退短信登录。
 
 ## 建议落地顺序
