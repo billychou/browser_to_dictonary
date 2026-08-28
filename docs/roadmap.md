@@ -24,7 +24,7 @@
 
 1. **词汇列表页**：把 `GET /api/word/` 从占位实现改为真实分页查询，在 popup（或独立 options 页）展示我的词汇书，支持搜索。
 2. **删除与编辑**：`VocabularyService.delete/update` 已存在但未暴露为 API；补充 `DELETE /api/word/<id>`、`PUT /api/word/<id>` 与对应 UI。
-3. **单词详情**：保存时接入词典 API（释义、音标、例句），保存的不再只是字符串，复习价值大幅提升。
+3. **~~单词详情~~（已完成）**：保存时自动查询免费词典（Free Dictionary API，英文）落库释义/音标/例句（`phonetic/definition/detail` 字段），失败不阻塞保存，可用 `PUT /api/word/<id>/definition` 补查；小程序复习卡片与生词列表已展示。后续可接中文/多语词典源。
 4. **保存失败兜底**：当前后端不可达时单词直接丢失。增加本地待发队列（`chrome.storage`），恢复后自动重试；失败时给出红色 toast。
 5. **高亮逻辑修正**：现实现对全页文本节点做字符串切分替换，可能破坏页面结构且会高亮所有同名词。改为仅高亮用户实际选区（基于 `Range`/`Selection` API）。
 6. **登录态治理**：popup 仅凭 `userInfo` 是否存在判断登录；应校验 JWT 过期时间，过期自动回到登录页并清理存储。
@@ -42,7 +42,7 @@
 ## P3 — 增长与体验
 
 1. **商店上架**：`submit.yml` 已具备 bpp 自动提交能力，补齐商店素材（截图、描述、隐私声明）后发布；同步考虑 Edge / Firefox。
-2. **~~间隔复习~~（已完成）**：小程序端（`wechat-mini`）已实现艾宾浩斯复习卡片（认识/模糊/不认识，间隔 当天→1→2→4→7→15 天）；进度字段（`stage/due/review_count/lapse_count/last_review`）已落在 `vocabulary_word`，由 `PUT /api/word/<id>/review` 统一排期，跨设备同步。剩余增强：复习卡片接入 P1-3 词典释义。
+2. **~~间隔复习~~（已完成）**：小程序端（`wechat-mini`）已实现艾宾浩斯复习卡片（认识/模糊/不认识，间隔 当天→1→2→4→7→15 天）；进度字段（`stage/due/review_count/lapse_count/last_review`）已落在 `vocabulary_word`，由 `PUT /api/word/<id>/review` 统一排期，跨设备同步；复习卡片已展示 P1-3 词典释义。
 3. **数据导出**：支持导出 CSV / Anki 牌组，降低用户迁移顾虑。
 4. **划词即查**：选中即弹出小浮层显示释义 + "加入词汇书"按钮，比右键菜单少一步。
 5. **多端同步**：提供 Web 端词汇书页面，账号数据天然云端化（依赖 P0-1 完成）。
