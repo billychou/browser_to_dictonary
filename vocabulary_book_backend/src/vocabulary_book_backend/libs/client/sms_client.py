@@ -6,10 +6,7 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/11/6
 Copyright: @sanfendi
 """
-import sys
 from typing import Optional, Dict
-
-sys.path.append("/Users/songchuan.zhou/Src/browser_to_dictonary/vocabulary_book_backend/src/vocabulary_book_backend")
 
 import logging
 from alibabacloud_credentials.client import Client as CredentialClient
@@ -38,8 +35,6 @@ class SmsClient:
         @return: Client
         @throws Exception
         """
-        print(app_config.ALIBABA_CLOUD_ACCESS_KEY_ID)
-        print(app_config.ALIBABA_CLOUD_ACCESS_KEY_SECRET)
         credential_config = CredentialConfig(
             type='access_key',
             access_key_id=app_config.ALIBABA_CLOUD_ACCESS_KEY_ID,

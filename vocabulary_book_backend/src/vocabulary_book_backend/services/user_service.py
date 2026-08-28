@@ -15,6 +15,8 @@ import jwt
 from configs import app_config
 from extensions.ext_redis import redis_client
 from libs.client.sms_client import SmsClient
+from libs.constants import CACHE_SMS_CODE_ERR_MAX
+from libs.constants import CACHE_SMS_CODE_ERR_PREFIX
 from libs.constants import CACHE_SMS_CODE_PREFIX
 from libs.constants import CACHE_SMS_CODE_TIMEOUT
 from models import db
@@ -24,6 +26,7 @@ from models.user import User
 class UserService(object):
     def login_by_phone(self, phone: str, code: str) -> Optional[Dict[str, Any]]:
         """
+        手机号 + 短信验证码登录，用户不存在时自动注册
         :param phone: 手机号
         :param code: 验证码
         :return:
@@ -31,13 +34,7 @@ class UserService(object):
         if not phone or not code:
             raise Exception("手机号和验证码不能为空")
 
-        exist_code: bytes = redis_client.get(f"{CACHE_SMS_CODE_PREFIX}:{phone}")
-        exist_code_str = exist_code.decode("utf-8")
-        if not exist_code_str:
-            raise Exception("验证码已过期")
-
-        if exist_code_str != code:
-            raise Exception("无效的验证码")
+        self.verify_sms_code(phone, code)
 
         user = db.session.query(User).filter(User.phone == phone).first()
         # 当用户不存在的时候创建该用户
@@ -74,10 +71,12 @@ class UserService(object):
         """
         payload = {
             'user_id': user_id,
-            'exp': datetime.now() + timedelta(days=30),  # 10天过期
+            'exp': datetime.now() + timedelta(days=30),
             'iat': datetime.now()
         }
         jwt_secret_key = app_config.JWT_SECRET_KEY
+        if not jwt_secret_key:
+            raise Exception("服务端未配置 JWT_SECRET_KEY，禁止签发令牌")
         token = jwt.encode(payload, jwt_secret_key, algorithm='HS256')
         return token
 
@@ -91,7 +90,7 @@ class UserService(object):
             jwt_secret_key = app_config.JWT_SECRET_KEY
             payload = jwt.decode(token, jwt_secret_key, algorithms=['HS256'])
             user_id = payload.get('user_id')
-            
+
             # 检查用户是否存在
             user = db.session.query(User).filter(User.id == user_id).first()
             if not user:
@@ -115,15 +114,36 @@ class UserService(object):
         if exist_code:
             raise Exception("验证码已发送，请稍后再试")
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-        print(f"Sending SMS code {code} to {phone}")
         SmsClient.send(code, phone)
         cache_key = f"{CACHE_SMS_CODE_PREFIX}:{phone}"
         redis_client.setex(cache_key, CACHE_SMS_CODE_TIMEOUT, code)
+        # 重新发送验证码时清空历史错误次数，允许用户重新尝试
+        redis_client.delete(f"{CACHE_SMS_CODE_ERR_PREFIX}:{phone}")
 
-    def verify_sms_code(self, phone, code):
+    @staticmethod
+    def verify_sms_code(phone: str, code: str) -> None:
         """
-        :param phone:
-        :param code:
-        :return:
+        校验短信验证码，校验失败时抛出异常。
+        错误次数超过上限后，即使验证码正确也需重新获取，防止暴力枚举。
+        :param phone: 手机号码
+        :param code: 用户提交的验证码
         """
-        pass
+        err_key = f"{CACHE_SMS_CODE_ERR_PREFIX}:{phone}"
+        err_count = redis_client.get(err_key)
+        if err_count and int(err_count) >= CACHE_SMS_CODE_ERR_MAX:
+            raise Exception("验证码错误次数过多，请重新获取验证码")
+
+        exist_code = redis_client.get(f"{CACHE_SMS_CODE_PREFIX}:{phone}")
+        exist_code_str = exist_code.decode("utf-8") if exist_code else ""
+        if not exist_code_str:
+            raise Exception("验证码已过期")
+
+        if exist_code_str != code:
+            # 记录一次错误尝试，有效期与验证码一致
+            redis_client.incr(err_key)
+            redis_client.expire(err_key, CACHE_SMS_CODE_TIMEOUT)
+            raise Exception("无效的验证码")
+
+        # 校验通过，清除错误计数并消费掉验证码，防止重放
+        redis_client.delete(err_key)
+        redis_client.delete(f"{CACHE_SMS_CODE_PREFIX}:{phone}")

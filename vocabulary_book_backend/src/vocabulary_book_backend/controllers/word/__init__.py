@@ -13,6 +13,7 @@ from libs.external_api import ExternalApi
 bp = Blueprint("word", __name__, url_prefix="/api/word/")
 api = ExternalApi(bp)
 
-from .views import WordResource
+from .views import WordItemResource, WordResource
 
 api.add_resource(WordResource, "/")
+api.add_resource(WordItemResource, "/<int:word_id>")

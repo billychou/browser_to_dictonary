@@ -19,6 +19,10 @@ class AppConfig(DeploymentConfig, MiddlewareConfig, ThirdConfig):
         default="development",
         description="Environment",
     )
+    CORS_ORIGINS: str = Field(
+        default="chrome-extension://bpcmapeoloepbomiddaidikkbbaeodjn",
+        description="Comma-separated list of allowed CORS origins for /api/*",
+    )
     model_config = SettingsConfigDict(
         # read from dotenv format config file
         env_file=".env",

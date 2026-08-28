@@ -1,68 +1,113 @@
-// contents/highlight.ts - 内容脚本，用于高亮选中的文本
+// contents/highlight.ts - 内容脚本，用于高亮用户实际选中的文本
+// P1-5: 优先基于真实选区（Selection/Range）高亮，避免全页字符串替换破坏页面结构；
+// 仅当选区不可用时回退到按文本匹配高亮。
 
-function highlightText(selectedText: string) {
-  // 移除之前添加的样式
-  const existingStyle = document.getElementById('browser-extension-highlight-style');
-  if (existingStyle) {
-    existingStyle.remove();
-  }
+const STYLE_ID = "browser-extension-highlight-style"
 
-  // 创建样式元素
-  const style = document.createElement('style');
-  style.id = 'browser-extension-highlight-style';
+function ensureStyle() {
+  if (document.getElementById(STYLE_ID)) return
+  const style = document.createElement("style")
+  style.id = STYLE_ID
   style.textContent = `
     .browser-extension-highlight {
       background-color: lightcoral !important;
     }
-  `;
-  document.head.appendChild(style);
+  `
+  document.head.appendChild(style)
+}
 
-  // 查找所有包含选中文本的元素
+function wrapTextRange(textNode: Text, startOffset: number, endOffset: number) {
+  if (startOffset >= endOffset) return
+  // splitText 切出目标片段后用 span 包裹，避免影响其它节点
+  const target = textNode.splitText(startOffset)
+  target.splitText(endOffset - startOffset)
+  const span = document.createElement("span")
+  span.className = "browser-extension-highlight"
+  target.replaceWith(span)
+  span.appendChild(target)
+}
+
+// 高亮当前选区：收集与选区相交的文本节点，逐个包裹相交部分
+function highlightSelection(): boolean {
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+    return false
+  }
+  const range = selection.getRangeAt(0)
+  const ancestor = range.commonAncestorContainer
+  const root =
+    ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : ancestor
+  if (!root) return false
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      return range.intersectsNode(node)
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_REJECT
+    }
+  })
+
+  // 先收集后修改，避免 mutation 影响遍历
+  const textNodes: Text[] = []
+  let node: Node | null
+  while ((node = walker.nextNode())) {
+    textNodes.push(node as Text)
+  }
+  if (textNodes.length === 0) return false
+
+  for (const textNode of textNodes) {
+    const length = textNode.textContent?.length ?? 0
+    const startOffset =
+      textNode === range.startContainer ? range.startOffset : 0
+    const endOffset = textNode === range.endContainer ? range.endOffset : length
+    wrapTextRange(
+      textNode,
+      Math.max(startOffset, 0),
+      Math.min(endOffset, length)
+    )
+  }
+  return true
+}
+
+// 兜底：无选区时按文本精确匹配高亮（保持旧行为，兼容右键菜单场景）
+function highlightByText(selectedText: string) {
+  if (!selectedText) return
   const walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_TEXT,
-    null,
-    false
-  );
-
-  const textNodes: Text[] = [];
-  let node: Node | null;
-
-  while (node = walker.nextNode()) {
-    if (node.nodeType === Node.TEXT_NODE && node.textContent && node.textContent.includes(selectedText)) {
-      textNodes.push(node as Text);
+    null
+  )
+  const targets: Text[] = []
+  let node: Node | null
+  while ((node = walker.nextNode())) {
+    if (node.textContent?.includes(selectedText)) {
+      targets.push(node as Text)
     }
   }
-
-  // 高亮所有匹配的文本
-  textNodes.forEach(textNode => {
-    const text = textNode.textContent || "";
-    if (text.includes(selectedText)) {
-      const span = document.createElement("span");
-      span.className = "browser-extension-highlight";
-      span.textContent = selectedText;
-      
-      const parts = text.split(selectedText);
-      const fragment = document.createDocumentFragment();
-      
-      for (let i = 0; i < parts.length; i++) {
-        fragment.appendChild(document.createTextNode(parts[i]));
-        if (i < parts.length - 1) {
-          fragment.appendChild(span.cloneNode(true));
-        }
-      }
-      
-      textNode.parentNode?.replaceChild(fragment, textNode);
+  for (const textNode of targets) {
+    const text = textNode.textContent || ""
+    let index = text.indexOf(selectedText)
+    while (index !== -1) {
+      wrapTextRange(textNode, index, index + selectedText.length)
+      // splitText 后原文本节点只保留前半段，需要重新定位剩余部分
+      const rest = textNode.nextSibling
+      if (!rest || rest.nodeType !== Node.TEXT_NODE) break
+      const restText = rest.textContent || ""
+      const nextIndex = restText.indexOf(selectedText)
+      if (nextIndex === -1) break
+      index = nextIndex
     }
-  });
+  }
 }
 
-// 监听来自 background script 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "highlightText") {
-    highlightText(request.text);
-    sendResponse({ success: true });
+    ensureStyle()
+    if (!highlightSelection()) {
+      highlightByText(request.text || "")
+    }
+    sendResponse({ success: true })
   }
-});
+})
 
-export {};
+export {}

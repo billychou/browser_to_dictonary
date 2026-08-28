@@ -31,11 +31,16 @@ def cors_app(app: VbApp):
     :param app:
     :return:
     """
+    origins = [
+        origin.strip()
+        for origin in app_config.CORS_ORIGINS.split(",")
+        if origin.strip()
+    ]
     CORS(
         app,
         resources={
             r"/api/*": {
-                "origins": "chrome-extension://bpcmapeoloepbomiddaidikkbbaeodjn",
+                "origins": origins,
                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
                 "allow_headers": ["Content-Type", "Authorization", "Accept"],
                 "supports_credentials": True,

@@ -36,7 +36,7 @@ class DatabaseConfig(BaseSettings):
 
     DB_PASSWORD: str = Field(
         description="Password for database authentication.",
-        default="Iphone09.",
+        default="",
     )
 
     DB_DATABASE: str = Field(

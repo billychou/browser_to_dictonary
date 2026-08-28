@@ -8,7 +8,7 @@ Copyright: @sanfendi
 """
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from models import db
 from models.word import Word
@@ -94,3 +94,77 @@ class VocabularyService:
         stmt = select(Word).where(*filters)
         words = db.session.execute(stmt).scalars().all()
         return words
+
+    @staticmethod
+    def list_by_user(
+        uid: str, word: str = None, page: int = 1, limit: int = 50
+    ) -> tuple[List[Word], int]:
+        """
+        分页查询某个用户的词汇列表，按最近更新时间倒序
+        :param uid: 用户ID（字符串）
+        :param word: 可选，单词精确过滤
+        :param page: 页码，从 1 开始
+        :param limit: 每页条数
+        :return: (当前页数据, 总数)
+        """
+        page = max(page, 1)
+        limit = max(min(limit, 200), 1)
+        filters = [Word.uid == uid]
+        if word:
+            filters.append(Word.word == word)
+        total = db.session.execute(
+            select(func.count(Word.id)).where(*filters)
+        ).scalar() or 0
+        stmt = (
+            select(Word)
+            .where(*filters)
+            .order_by(Word.gmt_update.desc())
+            .offset((page - 1) * limit)
+            .limit(limit)
+        )
+        words = db.session.execute(stmt).scalars().all()
+        return list(words), int(total)
+
+    @staticmethod
+    def get_owned(uid: str, word_id: int) -> Word:
+        """
+        获取属于该用户的词汇记录，不存在或不属于该用户时抛出异常
+        :param uid: 用户ID（字符串）
+        :param word_id: 词汇记录ID
+        :return:
+        """
+        word = db.session.execute(
+            select(Word).where(Word.id == word_id, Word.uid == uid)
+        ).scalars().first()
+        if not word:
+            raise Exception("词汇不存在或无权操作")
+        return word
+
+    @staticmethod
+    def delete_owned(uid: str, word_id: int) -> None:
+        """
+        删除属于该用户的词汇记录
+        :param uid: 用户ID（字符串）
+        :param word_id: 词汇记录ID
+        """
+        word = VocabularyService.get_owned(uid, word_id)
+        db.session.delete(word)
+        db.session.commit()
+
+    @staticmethod
+    def update_owned(uid: str, word_id: int, word_text: str) -> Word:
+        """
+        更新属于该用户的词汇内容
+        :param uid: 用户ID（字符串）
+        :param word_id: 词汇记录ID
+        :param word_text: 新的单词/短语内容
+        :return:
+        """
+        if not word_text or not word_text.strip():
+            raise Exception("词汇内容不能为空")
+        word = VocabularyService.get_owned(uid, word_id)
+        word.word = word_text.strip()
+        word.gmt_update = db.func.now()
+        db.session.add(word)
+        db.session.commit()
+        return word

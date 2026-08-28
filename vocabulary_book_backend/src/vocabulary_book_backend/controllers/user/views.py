@@ -7,29 +7,24 @@ Date: 2025/11/05
 Copyright: @sanfendi
 """
 
+from flask import g
 from flask_restful import Resource
 from flask_restful import reqparse
 
+from libs.auth import jwt_required
 from services import UserService
 
 
 class UserResource(Resource):
     """用户资源类"""
-    
+
+    @jwt_required
     def get(self):
-        """获取当前用户信息"""
-        # 这里应该从请求中获取用户身份信息
-        # 暂时返回示例数据
+        """获取当前登录用户信息"""
         return {
             "success": True,
             "message": "获取用户信息成功",
-            "data": {
-                "id": 1,
-                "phone": "13800138000",
-                "nickname": "测试用户",
-                "avatar": "",
-                "is_active": True
-            }
+            "data": g.current_user.to_dict()
         }
 
 
