@@ -22,3 +22,16 @@ word_post_resp_fields = {
     "message": fields.String,
     "data": fields.Nested(word_fields),
 }
+
+word_list_data_fields = {
+    "total": fields.Integer,
+    "page": fields.Integer,
+    "limit": fields.Integer,
+    "items": fields.List(fields.Nested(word_fields)),
+}
+
+word_list_resp_fields = {
+    "success": fields.Boolean,
+    "message": fields.String,
+    "data": fields.Nested(word_list_data_fields),
+}
