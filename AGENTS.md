@@ -40,7 +40,7 @@ This monorepo contains a Chrome extension, its WeChat mini-program companion, an
 ## Testing Guidelines
 
 - Framework: pytest. Test files live in `tests/test_services/` mirroring the source layer, named `test_*.py` with `test_*` functions.
-- Current tests are integration tests that build the real app (`create_app()`) and require local MySQL and Redis to be running.
+- Two flavors: mocked unit tests (`test_sms_code_guard.py`, `TestCode2Session` in `test_wechat_login.py` — mock Redis/HTTP, run anywhere) and integration tests that build the real app (`create_app()`) and need MySQL (schema via `tests/setup_schema.py`). Prefer mocking external dependencies in new tests; CI provides MySQL/Redis services.
 
 ## Commit & Pull Request Guidelines
 
