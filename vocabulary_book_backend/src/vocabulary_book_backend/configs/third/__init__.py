@@ -6,12 +6,13 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/11/6
 Copyright: @sanfendi
 """
+from .dictionary_config import DictionaryConfig
 from .sms_config import AlibabaCloudConfig
 from .sms_config import SmsConfig
 from .wechat_config import WeChatMiniConfig
 
 
-class ThirdConfig(SmsConfig, AlibabaCloudConfig, WeChatMiniConfig):
+class ThirdConfig(SmsConfig, AlibabaCloudConfig, WeChatMiniConfig, DictionaryConfig):
     """
     第三方配置
     """

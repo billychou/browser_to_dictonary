@@ -29,6 +29,10 @@ class Word(db.Model):
     review_count: Mapped[int] = db.Column(db.Integer, nullable=False, default=0, server_default="0")
     lapse_count: Mapped[int] = db.Column(db.Integer, nullable=False, default=0, server_default="0")
     last_review: Mapped[Optional[datetime]] = db.Column(db.DateTime, nullable=True)
+    # 词典释义（保存时尽力而为查询，可经接口补查）
+    phonetic: Mapped[Optional[str]] = db.Column(db.String(128), nullable=True)
+    definition: Mapped[Optional[str]] = db.Column(db.Text, nullable=True)
+    detail: Mapped[Optional[dict]] = db.Column(db.JSON, nullable=True)
     gmt_create: Mapped[datetime] = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     gmt_update: Mapped[datetime] = db.Column(
         db.DateTime,

@@ -13,8 +13,14 @@ from libs.external_api import ExternalApi
 bp = Blueprint("word", __name__, url_prefix="/api/word/")
 api = ExternalApi(bp)
 
-from .views import WordItemResource, WordResource, WordReviewResource
+from .views import (
+    WordDefinitionResource,
+    WordItemResource,
+    WordResource,
+    WordReviewResource,
+)
 
 api.add_resource(WordResource, "/")
 api.add_resource(WordItemResource, "/<int:word_id>")
 api.add_resource(WordReviewResource, "/<int:word_id>/review")
+api.add_resource(WordDefinitionResource, "/<int:word_id>/definition")

@@ -107,6 +107,29 @@ class WordItemResource(Resource):
         return dict(success=True, message="success", data=None)
 
 
+class WordDefinitionResource(Resource):
+    """
+    单词释义补查接口（需登录，仅允许操作本人词汇）
+    """
+
+    @jwt_required
+    def put(self, word_id: int):
+        """
+        重新查询词典释义（首次保存查询失败时可补查）
+        :param word_id: 词汇记录ID
+        :return:
+        """
+        try:
+            data = VocabularyService.refresh_definition_owned(
+                uid=str(g.current_user.id), word_id=word_id
+            )
+        except Exception as e:
+            return dict(success=False, message=str(e), data=None), 400
+        return marshal(
+            dict(success=True, message="success", data=data), word_post_resp_fields
+        )
+
+
 class WordReviewResource(Resource):
     """
     单词复习接口（需登录，仅允许操作本人词汇）
