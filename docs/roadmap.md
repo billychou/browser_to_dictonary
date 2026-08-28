@@ -41,7 +41,7 @@
 
 ## P3 — 增长与体验
 
-1. **商店上架**：`submit.yml` 已具备 bpp 自动提交能力，补齐商店素材（截图、描述、隐私声明）后发布；同步考虑 Edge / Firefox。
+1. **商店上架（素材已备，待人工提交）**：`submit.yml` 具备 bpp 自动提交能力；文案/隐私政策/权限说明/截图与密钥清单见 `docs/store-listing.md`。剩余：截图、隐私政策网址、`SUBMIT_KEYS` 配置、手动触发工作流；后续考虑 Edge / Firefox。
 2. **~~间隔复习~~（已完成）**：小程序端（`wechat-mini`）已实现艾宾浩斯复习卡片（认识/模糊/不认识，间隔 当天→1→2→4→7→15 天）；进度字段（`stage/due/review_count/lapse_count/last_review`）已落在 `vocabulary_word`，由 `PUT /api/word/<id>/review` 统一排期，跨设备同步；复习卡片已展示 P1-3 词典释义。
 3. **~~数据导出~~（已完成）**：`GET /api/word/export/` 导出本人全部词汇（UTF-8 BOM CSV，含音标/释义/进度，Excel/Anki 可导入）；扩展 popup「导出 CSV」与小程序「我的-数据导出」均已接入。
 4. **~~划词即查~~（已完成）**：选中英文单词/短语即弹浮层，展示音标/释义并可一键加入词汇书；后端新增 `GET /api/dictionary?word=`（JWT + 每用户 30 次/分钟频控）。
