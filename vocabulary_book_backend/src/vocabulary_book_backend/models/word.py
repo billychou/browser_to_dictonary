@@ -7,6 +7,7 @@ Date: 2025/10/14
 Copyright: @sanfendi
 """
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy.orm import Mapped
 
@@ -22,6 +23,12 @@ class Word(db.Model):
     id: Mapped[int] = db.Column(db.Integer, nullable=False, autoincrement=True)
     uid: Mapped[str] = db.Column(db.String(64), nullable=False)
     word: Mapped[str] = db.Column(db.String(64), nullable=False)
+    # 间隔复习进度（艾宾浩斯），由 /api/word/<id>/review 维护
+    stage: Mapped[int] = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    due: Mapped[Optional[datetime]] = db.Column(db.DateTime, nullable=True)
+    review_count: Mapped[int] = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    lapse_count: Mapped[int] = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    last_review: Mapped[Optional[datetime]] = db.Column(db.DateTime, nullable=True)
     gmt_create: Mapped[datetime] = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     gmt_update: Mapped[datetime] = db.Column(
         db.DateTime,

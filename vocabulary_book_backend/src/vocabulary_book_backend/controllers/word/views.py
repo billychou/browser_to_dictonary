@@ -105,3 +105,29 @@ class WordItemResource(Resource):
         except Exception as e:
             return dict(success=False, message=str(e), data=None), 400
         return dict(success=True, message="success", data=None)
+
+
+class WordReviewResource(Resource):
+    """
+    单词复习接口（需登录，仅允许操作本人词汇）
+    """
+
+    @jwt_required
+    def put(self, word_id: int):
+        """
+        记录一次复习结果（known | fuzzy | unknown），服务端统一计算排期
+        :param word_id: 词汇记录ID
+        :return:
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument("result", type=str, required=True, location="json")
+        args = parser.parse_args()
+        try:
+            data = VocabularyService.review_owned(
+                uid=str(g.current_user.id), word_id=word_id, result=args["result"]
+            )
+        except Exception as e:
+            return dict(success=False, message=str(e), data=None), 400
+        return marshal(
+            dict(success=True, message="success", data=data), word_post_resp_fields
+        )

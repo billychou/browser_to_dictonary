@@ -40,7 +40,7 @@ Page({
       const words = await api.fetchAllWords()
       this.setData({
         stats: review.getStats(words),
-        totalReviews: review.getTotalReviews()
+        totalReviews: review.getTotalReviews(words)
       })
     } catch (err) {
       wx.showToast({ title: err.message, icon: "none" })
