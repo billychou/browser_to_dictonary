@@ -12,6 +12,7 @@ This monorepo contains a Chrome extension, its WeChat mini-program companion, an
 - `vocabulary_book_backend/` — Flask API (Python ≥3.9).
   - Source: `src/vocabulary_book_backend/` with layers `controllers/` (Flask-RESTful resources under `/api/...`), `services/` (business logic), `models/` (SQLAlchemy), `configs/` (pydantic-settings), `extensions/`, `libs/`, `fields/`, `migrations/` (Alembic via Flask-Migrate).
   - Tests: `vocabulary_book_backend/tests/`.
+  - API reference (endpoints, auth, conventions): `docs/api.md`.
 
 ## Build, Test, and Development Commands
 

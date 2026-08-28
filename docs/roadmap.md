@@ -31,10 +31,10 @@
 
 ## P2 — 工程质量
 
-1. **统一请求层**：`background.ts` 中 4 段几乎相同的 `fetch` 模板收敛为 `apiRequest(action, payload)`；前后端约定统一的 `{success, message, data}` 类型（TypeScript 接口定义）。
+1. **~~统一请求层~~（已完成）**：扩展请求统一走 `lib/api.ts` 的 `apiFetch`（自动带 JWT、401 清理登录态、非 2xx 抛错并携带后端 message）；`postWord` 修正对 `success: false` 的判断，失败正确进入离线队列。
 2. **测试**：现有 `tests/` 依赖真实 MySQL/Redis（集成测试）。补充 mock 掉 DB/Redis/短信客户端的服务层单元测试；接入 GitHub Actions 跑 `pytest` 与 `tsc`/`prettier` 检查。
 3. **~~统一响应与错误码~~（已完成）**：`libs/api_response.py` 提供 `@api_handler` 装饰器，业务异常统一转为 `{success, message, data}` + 400，各 Resource 不再手写 try/except。
-4. **API 文档**：引入 OpenAPI/Swagger 自动生成（如 flask-smorest），替代手工维护的接口表。
+4. **~~API 文档~~（已完成）**：`docs/api.md` 汇总全部接口的鉴权、请求/响应结构与频控约定；后续如引入 flask-smorest 可再升级为 OpenAPI 自动生成。
 5. **部署**：目前只有 `python app.py` 本地跑法。补 `gunicorn`/Dockerfile 与部署说明；规范 migrations 流程（当前已出现 merge 迁移文件）。
 6. **限流**：对保存单词、发送短信接口做频控（Redis 计数器即可），防刷短信费用。
 7. **微信登录收尾**：`WeChatService` 代码完整但未接路由；决策"接通"或"删除"，避免死代码。

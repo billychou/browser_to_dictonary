@@ -77,6 +77,17 @@ export async function apiFetch<T = ApiResult>(
     await clearUserInfo()
     throw new Error("登录已过期，请重新登录")
   }
+  // P2-1: 非 2xx 统一抛出并携带后端 message，调用方只需处理异常分支
+  if (!response.ok) {
+    let message = `请求失败（${response.status}）`
+    try {
+      const body = (await response.json()) as ApiResult
+      if (body?.message) message = body.message
+    } catch {
+      // 非 JSON 响应体时保留默认提示
+    }
+    throw new Error(message)
+  }
   return (await response.json()) as T
 }
 
@@ -97,11 +108,12 @@ export async function queuePendingWord(word: string): Promise<void> {
 
 export async function postWord(word: string): Promise<boolean> {
   try {
-    await apiFetch("/api/word/", {
+    const data = await apiFetch("/api/word/", {
       method: "POST",
       body: JSON.stringify({ word })
     })
-    return true
+    // 200 但 success=false 也视为失败，交由离线队列重试
+    return data?.success !== false
   } catch {
     return false
   }
