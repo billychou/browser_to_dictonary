@@ -17,7 +17,7 @@ class JwtConfig(BaseSettings):
 
     JWT_SECRET_KEY: str = Field(
         description="JWT 密钥",
-        default="default_secret_key",
+        default="",
     )
 
     JWT_ALGORITHM: str = Field(
