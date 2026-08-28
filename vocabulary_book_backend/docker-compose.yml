@@ -1,0 +1,50 @@
+# 生产/类生产环境一键部署：MySQL + Redis + API
+# 用法：在 src/vocabulary_book_backend/.env 中配置密钥后执行
+#   docker compose up -d --build
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?请在 .env 或环境变量中设置 DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE:-sanfendi}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - src/vocabulary_book_backend/.env
+    environment:
+      # 容器网络内使用服务名覆盖 .env 中的 localhost
+      DB_HOST: mysql
+      REDIS_HOST: redis
+    ports:
+      - "7001:7001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  redis_data:
