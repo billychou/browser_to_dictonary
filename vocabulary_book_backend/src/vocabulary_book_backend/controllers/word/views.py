@@ -14,6 +14,7 @@ from flask_restful import reqparse
 
 from fields.words_fields import word_list_resp_fields
 from fields.words_fields import word_post_resp_fields
+from libs.api_response import api_handler
 from libs.auth import jwt_required
 from services.vocabulary_service import VocabularyService
 
@@ -73,6 +74,7 @@ class WordItemResource(Resource):
     单个单词接口（需登录，仅允许操作本人词汇）
     """
 
+    @api_handler()
     @jwt_required
     def put(self, word_id: int):
         """
@@ -83,16 +85,14 @@ class WordItemResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("word", type=str, required=True, location="json")
         args = parser.parse_args()
-        try:
-            data = VocabularyService.update_owned(
-                uid=str(g.current_user.id), word_id=word_id, word_text=args["word"]
-            )
-        except Exception as e:
-            return dict(success=False, message=str(e), data=None), 400
+        data = VocabularyService.update_owned(
+            uid=str(g.current_user.id), word_id=word_id, word_text=args["word"]
+        )
         return marshal(
             dict(success=True, message="success", data=data), word_post_resp_fields
         )
 
+    @api_handler()
     @jwt_required
     def delete(self, word_id: int):
         """
@@ -100,10 +100,7 @@ class WordItemResource(Resource):
         :param word_id: 词汇记录ID
         :return:
         """
-        try:
-            VocabularyService.delete_owned(uid=str(g.current_user.id), word_id=word_id)
-        except Exception as e:
-            return dict(success=False, message=str(e), data=None), 400
+        VocabularyService.delete_owned(uid=str(g.current_user.id), word_id=word_id)
         return dict(success=True, message="success", data=None)
 
 
@@ -112,6 +109,7 @@ class WordDefinitionResource(Resource):
     单词释义补查接口（需登录，仅允许操作本人词汇）
     """
 
+    @api_handler()
     @jwt_required
     def put(self, word_id: int):
         """
@@ -119,12 +117,9 @@ class WordDefinitionResource(Resource):
         :param word_id: 词汇记录ID
         :return:
         """
-        try:
-            data = VocabularyService.refresh_definition_owned(
-                uid=str(g.current_user.id), word_id=word_id
-            )
-        except Exception as e:
-            return dict(success=False, message=str(e), data=None), 400
+        data = VocabularyService.refresh_definition_owned(
+            uid=str(g.current_user.id), word_id=word_id
+        )
         return marshal(
             dict(success=True, message="success", data=data), word_post_resp_fields
         )
@@ -135,6 +130,7 @@ class WordReviewResource(Resource):
     单词复习接口（需登录，仅允许操作本人词汇）
     """
 
+    @api_handler()
     @jwt_required
     def put(self, word_id: int):
         """
@@ -145,12 +141,9 @@ class WordReviewResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("result", type=str, required=True, location="json")
         args = parser.parse_args()
-        try:
-            data = VocabularyService.review_owned(
-                uid=str(g.current_user.id), word_id=word_id, result=args["result"]
-            )
-        except Exception as e:
-            return dict(success=False, message=str(e), data=None), 400
+        data = VocabularyService.review_owned(
+            uid=str(g.current_user.id), word_id=word_id, result=args["result"]
+        )
         return marshal(
             dict(success=True, message="success", data=data), word_post_resp_fields
         )
