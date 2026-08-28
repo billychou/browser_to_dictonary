@@ -1995,7 +1995,7 @@ wheels = [
 [[package]]
 name = "vocabulary-book-backend"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "alibabacloud-dypnsapi20170525" },
     { name = "alibabacloud-dysmsapi20180501" },
