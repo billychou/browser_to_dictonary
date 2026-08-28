@@ -1,0 +1,66 @@
+<view class="page">
+  <!-- 概览 -->
+  <view class="card stats">
+    <view class="stat">
+      <view class="stat-num">{{total}}</view>
+      <view class="stat-label muted">总词数</view>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat">
+      <view class="stat-num">{{weekNew}}</view>
+      <view class="stat-label muted">本周新增</view>
+    </view>
+  </view>
+
+  <!-- 搜索 -->
+  <view class="card search-card">
+    <input
+      class="input"
+      confirm-type="search"
+      placeholder="搜索生词"
+      placeholder-class="ph"
+      value="{{keyword}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 添加 -->
+  <view class="card add-row">
+    <input
+      class="input add-input"
+      confirm-type="done"
+      maxlength="64"
+      placeholder="手动添加生词或短语"
+      placeholder-class="ph"
+      value="{{newWord}}"
+      bindinput="onNewWordInput"
+      bindconfirm="addWord"
+    />
+    <view class="btn-add" bindtap="addWord">添加</view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="word-list" wx:if="{{displayWords.length > 0}}">
+    <view
+      class="card word-item"
+      wx:for="{{displayWords}}"
+      wx:key="id"
+      data-item="{{item}}"
+      bindtap="onWordTap"
+    >
+      <view class="word-text">{{item.word}}</view>
+      <view class="word-meta muted">{{item.relativeTime}}</view>
+    </view>
+    <view class="list-footer muted">
+      {{loadingMore ? '加载中…' : (displayWords.length < filteredCount ? '上拉加载更多' : '没有更多了')}}
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:elif="{{!loading && !error}}">
+    <view>{{keyword ? '没有找到相关生词' : '生词本还是空的'}}</view>
+    <view class="empty-sub">{{keyword ? '换个关键词试试' : '在浏览器插件划词收藏，或在上方手动添加'}}</view>
+  </view>
+
+  <view class="empty" wx:if="{{error}}">{{error}}</view>
+</view>

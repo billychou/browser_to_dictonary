@@ -1,0 +1,86 @@
+/* 全局样式：简洁卡片风格，微信绿为主色 */
+page {
+  background: #f5f6f8;
+  color: #1f2329;
+  font-size: 30rpx;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.page {
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(31, 35, 41, 0.04);
+  box-sizing: border-box;
+}
+
+.card-title {
+  font-size: 26rpx;
+  color: #8a9099;
+  margin-bottom: 20rpx;
+}
+
+.muted {
+  color: #8a9099;
+  font-size: 24rpx;
+}
+
+.input {
+  background: #f5f6f8;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 30rpx;
+  box-sizing: border-box;
+}
+
+.ph {
+  color: #b6bcc4;
+}
+
+.btn-primary {
+  background: #07c160;
+  color: #ffffff;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+.btn-primary::after {
+  border: none;
+}
+
+.btn-primary[disabled] {
+  background: #9be6bc;
+  color: #ffffff;
+}
+
+.btn-plain {
+  background: #ffffff;
+  color: #1f2329;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  padding: 18rpx 0;
+  text-align: center;
+}
+
+.btn-plain::after {
+  border: none;
+}
+
+.empty {
+  text-align: center;
+  color: #8a9099;
+  padding: 120rpx 48rpx;
+  font-size: 28rpx;
+}

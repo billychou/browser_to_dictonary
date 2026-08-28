@@ -1,0 +1,96 @@
+<view class="page">
+  <!-- 首页：进度概览 -->
+  <block wx:if="{{view === 'home'}}">
+    <view class="card">
+      <view class="card-title">学习进度</view>
+      <view class="stats-grid">
+        <view class="grid-item">
+          <view class="grid-num">{{stats.dueCount}}</view>
+          <view class="grid-label muted">今日待复习</view>
+        </view>
+        <view class="grid-item">
+          <view class="grid-num">{{stats.reviewedToday}}</view>
+          <view class="grid-label muted">今日已复习</view>
+        </view>
+        <view class="grid-item">
+          <view class="grid-num">{{stats.mastered}}/{{stats.total}}</view>
+          <view class="grid-label muted">已掌握/总词数</view>
+        </view>
+        <view class="grid-item">
+          <view class="grid-num">{{stats.streak}}</view>
+          <view class="grid-label muted">连续学习天数</view>
+        </view>
+      </view>
+      <view class="progress-wrap">
+        <view class="progress-bar">
+          <view class="progress-inner" style="width: {{masteredPercent}}%"></view>
+        </view>
+        <view class="muted progress-text">掌握进度 {{masteredPercent}}%</view>
+      </view>
+    </view>
+
+    <button
+      class="btn-primary start-btn"
+      disabled="{{stats.dueCount === 0 || loading}}"
+      bindtap="startSession"
+    >{{loading ? '加载中…' : (stats.dueCount > 0 ? '开始复习（' + stats.dueCount + ' 个）' : '今日复习已完成')}}</button>
+
+    <view class="hint muted" wx:if="{{stats.dueCount === 0 && stats.total > 0}}">
+      所有生词都已完成今日复习，明天再来吧 🎉
+    </view>
+    <view class="hint muted" wx:if="{{stats.total === 0 && !loading}}">
+      生词本还是空的，先去「生词本」添加几个词吧
+    </view>
+    <view class="hint muted">复习间隔：当天 → 1 → 2 → 4 → 7 → 15 天</view>
+  </block>
+
+  <!-- 复习中 -->
+  <block wx:if="{{view === 'session'}}">
+    <view class="session-head">
+      <view class="muted">{{knownCount}} / {{sessionSize}} 已掌握</view>
+      <view class="exit" bindtap="exitSession">退出</view>
+    </view>
+    <view class="progress-bar session-progress">
+      <view class="progress-inner" style="width: {{sessionSize ? knownCount / sessionSize * 100 : 0}}%"></view>
+    </view>
+
+    <view class="flashcard {{revealed ? 'flashcard-revealed' : ''}}" bindtap="reveal">
+      <view class="flash-word">{{current.word}}</view>
+      <block wx:if="{{!revealed}}">
+        <view class="flash-hint muted">想一想这个词的含义，点击卡片核对</view>
+      </block>
+      <block wx:else>
+        <view class="flash-meta muted">
+          <view>添加于 {{currentDays}} 天前 · 已复习 {{currentReviews}} 次</view>
+          <view>当前等级 {{currentStage}}/5 · {{stageTip}}</view>
+        </view>
+      </block>
+    </view>
+
+    <view class="answer-row" wx:if="{{revealed}}">
+      <view class="answer-btn answer-unknown" bindtap="answer" data-result="unknown">不认识</view>
+      <view class="answer-btn answer-fuzzy" bindtap="answer" data-result="fuzzy">模糊</view>
+      <view class="answer-btn answer-known" bindtap="answer" data-result="known">认识</view>
+    </view>
+    <view class="hint muted answer-hint" wx:else>先回忆，再点卡片核对</view>
+  </block>
+
+  <!-- 完成 -->
+  <block wx:if="{{view === 'done'}}">
+    <view class="card done-card">
+      <view class="done-emoji">🎉</view>
+      <view class="done-title">本轮复习完成</view>
+      <view class="done-stats">
+        <view class="grid-item">
+          <view class="grid-num">{{sessionReviewed}}</view>
+          <view class="grid-label muted">复习词数</view>
+        </view>
+        <view class="grid-item">
+          <view class="grid-num">{{sessionMastered}}</view>
+          <view class="grid-label muted">新晋掌握</view>
+        </view>
+      </view>
+    </view>
+    <button class="btn-primary start-btn" bindtap="backHome">返回</button>
+  </block>
+</view>

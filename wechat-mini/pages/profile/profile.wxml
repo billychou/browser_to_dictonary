@@ -1,0 +1,60 @@
+<view class="page">
+  <!-- 用户信息 -->
+  <view class="card user-card">
+    <view class="avatar">{{avatarText}}</view>
+    <view class="user-info">
+      <view class="user-name">{{displayName}}</view>
+      <view class="muted">{{maskedPhone}}</view>
+    </view>
+  </view>
+
+  <!-- 学习数据 -->
+  <view class="card">
+    <view class="card-title">学习数据</view>
+    <view class="stats-grid">
+      <view class="grid-item">
+        <view class="grid-num">{{stats.total}}</view>
+        <view class="grid-label muted">总词数</view>
+      </view>
+      <view class="grid-item">
+        <view class="grid-num">{{stats.mastered}}</view>
+        <view class="grid-label muted">已掌握</view>
+      </view>
+      <view class="grid-item">
+        <view class="grid-num">{{totalReviews}}</view>
+        <view class="grid-label muted">累计复习</view>
+      </view>
+      <view class="grid-item">
+        <view class="grid-num">{{stats.streak}}</view>
+        <view class="grid-label muted">连续天数</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 服务地址 -->
+  <view class="card">
+    <view class="card-title">服务地址</view>
+    <view class="api-row">
+      <input
+        class="input api-input"
+        placeholder="{{defaultApiBase}}"
+        placeholder-class="ph"
+        value="{{apiBase}}"
+        bindinput="onApiBaseInput"
+      />
+      <view class="api-save" bindtap="saveApiBase">保存</view>
+    </view>
+    <view class="muted api-tip">留空则使用默认地址；生产环境需 HTTPS 并在微信公众平台配置合法域名</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="card">
+    <view class="card-title">数据说明</view>
+    <view class="muted about-text">
+      生词数据与浏览器插件共用同一云端账号，手机号一致即自动同步。
+      复习进度目前保存在本机，跨设备云端同步正在规划中。
+    </view>
+  </view>
+
+  <button class="btn-plain logout-btn" bindtap="logout">退出登录</button>
+</view>
