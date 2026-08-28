@@ -13,7 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4 # 版本读取 package.json 的 packageManager 字段
+        uses: pnpm/action-setup@v4
+        with:
+          # uses 步骤不受 working-directory 影响，读不到子目录 package.json 的
+          # packageManager 字段，此处需显式指定并保持与其一致
+          version: 11.7.0
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
