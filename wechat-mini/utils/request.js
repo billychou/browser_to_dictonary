@@ -75,9 +75,9 @@ function login(phone, code) {
   })
 }
 
-// 当前用户信息
+// 当前用户信息（注意：该路由注册为 /api/user，无尾斜杠）
 function fetchUserInfo() {
-  return request("/api/user/")
+  return request("/api/user")
 }
 
 // 分页查询词汇列表（后端 word 参数为精确匹配）

@@ -177,7 +177,7 @@ class TestWeChatLoginEndpoint:
         assert body["data"]["user_info"]["wechat_openid"] == TEST_OPENID
 
         me = self.client.get(
-            "/api/user/", headers={"Authorization": f"Bearer {token}"}
+            "/api/user", headers={"Authorization": f"Bearer {token}"}
         )
         me_body = me.get_json()
         assert me.status_code == 200
