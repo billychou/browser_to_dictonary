@@ -1,84 +1,33 @@
 /**
- * 间隔复习调度（艾宾浩斯遗忘曲线简化版）。
+ * 间隔复习与学习进度。
  *
- * 后端词汇表目前只有 word + 时间戳，无进度字段，
- * 因此复习进度先记录在小程序本地（见 wechat-mini/README「已知限制」），
- * 后续后端补充进度字段后可平滑迁移为云端同步。
+ * 进度数据（等级/到期时间/复习次数）由服务端统一维护
+ * （PUT /api/word/<id>/review），随词汇列表下发，跨设备一致。
+ * 本模块仅保留展示层的到期判断与「今日/连续天数」等本机活动统计。
  *
- * 规则：
- * - 每个词有一个等级 stage（0-5），对应复习间隔 [当天, 1, 2, 4, 7, 15] 天
- * - 「认识」升一级并按新间隔排期；「模糊」10 分钟后重新出现；
- *   「不认识」回到 0 级并立即重新排队
- * - 到达最高级视为「已掌握」
- * - 从未复习过的新词视为当次到期
+ * 服务端排期规则（与此一致）：等级 0-5 对应间隔 [当天, 1, 2, 4, 7, 15] 天，
+ * 「认识」升级排期，「模糊」10 分钟后重现，「不认识」回零级立即重排，
+ * 达到 5 级计为「已掌握」。
  */
-const { DAY, todayKey } = require("./date")
+const { DAY, todayKey, parseTime } = require("./date")
 
 const INTERVAL_DAYS = [0, 1, 2, 4, 7, 15]
 const MASTERED_STAGE = INTERVAL_DAYS.length - 1
-const FUZZY_DELAY = 10 * 60 * 1000
 
-const MAP_KEY = "vb_review_map"
 const LOG_KEY = "vb_study_log"
-
-function loadMap() {
-  return wx.getStorageSync(MAP_KEY) || {}
-}
-
-function saveMap(map) {
-  wx.setStorageSync(MAP_KEY, map)
-}
 
 function loadLog() {
   return wx.getStorageSync(LOG_KEY) || {}
 }
 
-function getEntry(map, wordId) {
-  return map[wordId] || null
+/** 是否到期：从未复习过（due 为空），或到期时间已过 */
+function isDueWord(word, now = Date.now()) {
+  if (!word.due) return true
+  const due = parseTime(word.due)
+  return !due || due <= now
 }
 
-/** 是否到期：从未复习过，或到期时间已过 */
-function isDue(entry, now = Date.now()) {
-  return !entry || (entry.due || 0) <= now
-}
-
-/**
- * 记录一次复习结果并持久化
- * @param result 'known' | 'fuzzy' | 'unknown'
- * @returns 更新后的 entry
- */
-function applyResult(wordId, result) {
-  const map = loadMap()
-  const entry = map[wordId] || { stage: 0, due: 0, reviews: 0, lapses: 0, last: 0 }
-  const now = Date.now()
-  entry.reviews += 1
-  entry.last = now
-  if (result === "known") {
-    entry.stage = Math.min(entry.stage + 1, MASTERED_STAGE)
-    entry.due = now + INTERVAL_DAYS[entry.stage] * DAY
-  } else if (result === "fuzzy") {
-    entry.due = now + FUZZY_DELAY
-  } else {
-    entry.stage = 0
-    entry.lapses += 1
-    entry.due = now
-  }
-  map[wordId] = entry
-  saveMap(map)
-  logStudy()
-  return entry
-}
-
-/** 删除词汇时同步清理本地复习记录 */
-function removeEntry(wordId) {
-  const map = loadMap()
-  if (map[wordId]) {
-    delete map[wordId]
-    saveMap(map)
-  }
-}
-
-/** 今日学习计数 +1 */
+/** 记录一次本地学习活动（用于今日计数与连续天数） */
 function logStudy() {
   const log = loadLog()
   const key = todayKey()
@@ -100,18 +49,16 @@ function getStreak() {
 }
 
 /**
- * 基于全量词汇与本地记录计算学习进度
- * @param words 全量词汇列表（含 id、gmt_create）
+ * 基于全量词汇（含服务端进度字段）计算学习进度
+ * @param words 全量词汇列表
  */
 function getStats(words) {
-  const map = loadMap()
   const now = Date.now()
   let mastered = 0
   let dueCount = 0
   for (const w of words) {
-    const entry = map[w.id]
-    if (entry && entry.stage >= MASTERED_STAGE) mastered += 1
-    if (isDue(entry, now)) dueCount += 1
+    if ((w.stage || 0) >= MASTERED_STAGE) mastered += 1
+    if (isDueWord(w, now)) dueCount += 1
   }
   const log = loadLog()
   return {
@@ -123,20 +70,16 @@ function getStats(words) {
   }
 }
 
-/** 累计复习次数 */
-function getTotalReviews() {
-  const map = loadMap()
-  return Object.keys(map).reduce((sum, k) => sum + (map[k].reviews || 0), 0)
+/** 累计复习次数（服务端字段汇总） */
+function getTotalReviews(words) {
+  return words.reduce((sum, w) => sum + (w.review_count || 0), 0)
 }
 
 module.exports = {
   INTERVAL_DAYS,
   MASTERED_STAGE,
-  loadMap,
-  getEntry,
-  isDue,
-  applyResult,
-  removeEntry,
+  isDueWord,
+  logStudy,
   getStats,
   getStreak,
   getTotalReviews

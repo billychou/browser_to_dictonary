@@ -1,6 +1,6 @@
 const api = require("../../utils/request")
 const { isLoggedIn, redirectToLogin } = require("../../utils/auth")
-const { daysAgo } = require("../../utils/date")
+const { daysAgo, parseTime } = require("../../utils/date")
 const review = require("../../utils/review")
 
 Page({
@@ -50,8 +50,7 @@ Page({
   },
 
   startSession() {
-    const map = review.loadMap()
-    this.queue = this.words.filter((w) => review.isDue(review.getEntry(map, w.id)))
+    this.queue = this.words.filter((w) => review.isDueWord(w))
     if (this.queue.length === 0) {
       wx.showToast({ title: "暂时没有待复习的词", icon: "none" })
       return
@@ -75,16 +74,19 @@ Page({
       this.finishSession()
       return
     }
-    const entry = review.getEntry(review.loadMap(), current.id)
+    const stage = current.stage || 0
+    const mastered = stage >= review.MASTERED_STAGE
     this.setData({
       current,
       revealed: false,
       currentDays: daysAgo(current.gmt_create),
-      currentReviews: entry ? entry.reviews : 0,
-      currentStage: entry ? entry.stage : 0,
-      stageTip: entry && entry.stage >= review.MASTERED_STAGE
+      currentReviews: current.review_count || 0,
+      currentStage: stage,
+      stageTip: mastered
         ? "已达最高等级"
-        : "下次间隔 " + review.INTERVAL_DAYS[Math.min((entry ? entry.stage : 0) + 1, review.MASTERED_STAGE)] + " 天"
+        : "认识后 " +
+          review.INTERVAL_DAYS[Math.min(stage + 1, review.MASTERED_STAGE)] +
+          " 天后再复习"
     })
   },
 
@@ -92,17 +94,28 @@ Page({
     if (!this.data.revealed) this.setData({ revealed: true })
   },
 
-  answer(e) {
+  async answer(e) {
     const result = e.currentTarget.dataset.result
     const current = this.queue[0]
     if (!current) return
-    const entry = review.applyResult(current.id, result)
+    try {
+      // 服务端记录进度并返回更新后的词汇（含最新排期）
+      const updated = await api.reviewWord(current.id, result)
+      Object.assign(current, updated)
+      // 同步全量列表中的同一条记录，保持退出后统计准确
+      const idx = this.words.findIndex((w) => w.id === updated.id)
+      if (idx >= 0) this.words[idx] = current
+    } catch (err) {
+      wx.showToast({ title: err.message, icon: "none" })
+      return
+    }
+    review.logStudy()
     this.setData({ sessionReviewed: this.data.sessionReviewed + 1 })
 
     if (result === "known") {
       this.queue.shift()
       const updates = { knownCount: this.data.knownCount + 1 }
-      if (entry.stage >= review.MASTERED_STAGE) {
+      if ((current.stage || 0) >= review.MASTERED_STAGE) {
         updates.sessionMastered = this.data.sessionMastered + 1
       }
       this.setData(updates, () => this.showCurrent())

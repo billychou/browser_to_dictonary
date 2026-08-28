@@ -1,8 +1,6 @@
 const api = require("../../utils/request")
 const { isLoggedIn, redirectToLogin } = require("../../utils/auth")
 const { formatRelative, daysAgo } = require("../../utils/date")
-const { removeEntry } = require("../../utils/review")
-
 const PAGE_SIZE = 50
 
 Page({
@@ -163,7 +161,6 @@ Page({
         api
           .deleteWord(item.id)
           .then(() => {
-            removeEntry(item.id)
             const allWords = this.data.allWords.filter((w) => w.id !== item.id)
             const weekNew = Math.max(
               0,

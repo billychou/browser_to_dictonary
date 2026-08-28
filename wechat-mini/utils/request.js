@@ -108,6 +108,14 @@ function deleteWord(wordId) {
   return request("/api/word/" + wordId, { method: "DELETE" })
 }
 
+// 记录一次复习结果，服务端统一计算排期，返回更新后的词汇
+function reviewWord(wordId, result) {
+  return request("/api/word/" + wordId + "/review", {
+    method: "PUT",
+    data: { result }
+  })
+}
+
 module.exports = {
   request,
   sendSmsCode,
@@ -118,5 +126,6 @@ module.exports = {
   fetchAllWords,
   addWord,
   updateWord,
-  deleteWord
+  deleteWord,
+  reviewWord
 }
