@@ -57,6 +57,15 @@ function sendSmsCode(phone) {
   })
 }
 
+// 微信一键登录：wx.login 的 code 换取 JWT（不存在自动注册）
+function wechatLogin(code) {
+  return request("/api/user/login/wechat/", {
+    method: "POST",
+    data: { code },
+    auth: false
+  })
+}
+
 // 手机号 + 验证码登录（不存在自动注册）
 function login(phone, code) {
   return request("/api/user/login/", {
@@ -102,6 +111,7 @@ function deleteWord(wordId) {
 module.exports = {
   request,
   sendSmsCode,
+  wechatLogin,
   login,
   fetchUserInfo,
   fetchWords,

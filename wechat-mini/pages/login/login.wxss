@@ -36,7 +36,29 @@
 
 .form {
   width: 100%;
-  margin-top: 96rpx;
+  margin-top: 80rpx;
+}
+
+.wx-btn {
+  width: 100%;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 48rpx 0 32rpx;
+}
+
+.divider-line {
+  flex: 1;
+  height: 2rpx;
+  background: #eef0f3;
+}
+
+.divider-text {
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: #b6bcc4;
 }
 
 .form .input {
