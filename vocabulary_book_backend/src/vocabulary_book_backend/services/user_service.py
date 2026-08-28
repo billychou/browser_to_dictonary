@@ -21,6 +21,7 @@ from libs.constants import CACHE_SMS_CODE_PREFIX
 from libs.constants import CACHE_SMS_CODE_TIMEOUT
 from models import db
 from models.user import User
+from services.wechat_service import WeChatService
 
 
 class UserService(object):
@@ -43,6 +44,34 @@ class UserService(object):
             db.session.add(user)
             db.session.flush()
             db.session.commit()
+        token = self.generate_token(user.id)
+        return dict(user_info=user.to_dict(), token=token)
+
+    def login_by_wechat(self, code: str) -> Dict[str, Any]:
+        """
+        微信小程序一键登录：wx.login 的 code 换取 openid，
+        按 openid 登录，用户不存在时自动注册
+        :param code: 小程序 wx.login 返回的临时登录凭证
+        :return: dict(user_info, token)
+        """
+        if not code:
+            raise Exception("微信授权码不能为空")
+
+        session_info = WeChatService().code2session(code)
+        openid = session_info.get("openid")
+        if not openid:
+            raise Exception("微信授权失败：未获取到 openid")
+
+        user = db.session.query(User).filter(User.wechat_openid == openid).first()
+        if not user:
+            user = User(
+                wechat_openid=openid,
+                wechat_unionid=session_info.get("unionid"),
+            )
+            db.session.add(user)
+            db.session.flush()
+            db.session.commit()
+
         token = self.generate_token(user.id)
         return dict(user_info=user.to_dict(), token=token)
 
