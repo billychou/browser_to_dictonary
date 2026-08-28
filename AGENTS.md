@@ -1,12 +1,14 @@
 # Repository Guidelines
 
-This monorepo contains a Chrome extension and its API backend for collecting words from web pages into a personal vocabulary book.
+This monorepo contains a Chrome extension, its WeChat mini-program companion, and their shared API backend for collecting words from web pages into a personal vocabulary book.
 
 ## Project Structure & Module Organization
 
 - `vocabulary-book/` — Plasmo-based Chrome extension (Manifest V3, React + TypeScript + Tailwind).
   - `popup.tsx` (popup UI), `background.ts` (service worker), `contents/` (content scripts, e.g. `highlight.ts`, `notification.tsx`), `assets/` (icons).
   - Extension manifest (permissions, host permissions) is declared in `package.json` under `manifest`.
+- `wechat-mini/` — WeChat mini-program client (native WXML/WXSS/JS, no build step).
+  - Shares the backend account & data with the extension; pages under `pages/` (`login`, `words`, `study`, `profile`), shared logic in `utils/`, server address in `config/api.js`. See `wechat-mini/README.md`.
 - `vocabulary_book_backend/` — Flask API (Python ≥3.9).
   - Source: `src/vocabulary_book_backend/` with layers `controllers/` (Flask-RESTful resources under `/api/...`), `services/` (business logic), `models/` (SQLAlchemy), `configs/` (pydantic-settings), `extensions/`, `libs/`, `fields/`, `migrations/` (Alembic via Flask-Migrate).
   - Tests: `vocabulary_book_backend/tests/`.
@@ -18,6 +20,9 @@ This monorepo contains a Chrome extension and its API backend for collecting wor
 - `pnpm build` — production bundle (`build/chrome-mv3-prod`).
 - `pnpm package` — zip the build for store submission.
 
+**Mini-program** (`wechat-mini/`):
+- No build step. Import the directory into WeChat DevTools (test AppID works); enable "不校验合法域名" for local development against `http://127.0.0.1:7001`.
+
 **Backend** (`vocabulary_book_backend/`, uv preferred; `poetry.lock` also present):
 - `uv sync` — install dependencies into `.venv`.
 - `cd src/vocabulary_book_backend && python app.py` — run locally on port 7001.
@@ -28,6 +33,7 @@ This monorepo contains a Chrome extension and its API backend for collecting wor
 ## Coding Style & Naming Conventions
 
 - Extension: 2-space indent, no semicolons, double quotes, no trailing commas (Prettier, see `vocabulary-book/.prettierrc.mjs`; imports auto-sorted). TypeScript `~/*` alias maps to project root.
+- Mini-program: 2-space indent, double quotes, no semicolons (same conventions as the extension); pages keep WXML/WXSS/JS/JSON quartets named after the page folder.
 - Backend: PEP 8, 4-space indent, `snake_case` functions/variables, `PascalCase` classes, type hints expected. Keep controllers thin; business logic belongs in `services/`.
 - Python files start with a docstring header (`File:`, `Author:`, `Date:`).
 
