@@ -40,15 +40,16 @@ wechat-mini/
 | `POST /api/user/login/wechat/` | 微信一键登录：`{code}` → `{user_info, token}`（按 openid 登录/注册） |
 | `POST /api/user/login/sms_send/` | 发送短信验证码 |
 | `POST /api/user/login/` | 手机号登录/注册，返回 `{user_info, token}` |
+| `PUT /api/word/<id>/review` | 记录复习结果 `{result: known/fuzzy/unknown}`，服务端统一排期 |
 | `GET /api/word/?page=&limit=` | 分页词汇列表（JWT） |
 | `POST /api/word/` · `PUT /api/word/<id>` · `DELETE /api/word/<id>` | 增/改/删（JWT） |
 
 ## 复习算法
 
-等级 0-5 对应间隔 `当天 → 1 → 2 → 4 → 7 → 15` 天：「认识」升级排期，「模糊」10 分钟后重现，「不认识」回零级立即重排；达到 5 级计为「已掌握」。从未复习的新词自动进入当日队列。
+进度（等级/到期时间/复习次数）**由服务端统一维护**并随词汇列表下发，跨设备一致。等级 0-5 对应间隔 `当天 → 1 → 2 → 4 → 7 → 15` 天：「认识」升级排期，「模糊」10 分钟后重现，「不认识」回零级立即重排；达到 5 级计为「已掌握」。从未复习的新词（`due` 为空）自动进入当日队列。
 
 ## 已知限制与规划
 
-- **学习进度存本机**（`wx.storage`）：后端词汇表暂无进度字段，跨设备同步待后端补充字段后迁移（见 `docs/roadmap.md`）。
+- **连续天数/今日复习数存本机**（`wx.storage` 活动日志）：属于设备维度的激励性统计；等级、到期时间等核心进度已云端同步。
 - **微信一键登录依赖后端配置**：后端 `.env` 需配置 `WECHAT_MINI_APP_ID` / `WECHAT_MINI_APP_SECRET`（微信公众平台 → 开发管理获取）；未配置时该入口返回明确错误，用户可回退短信登录。
 - **生产发布**：需将 `project.config.json` 中 `touristappid` 换成正式 AppID，服务端必须 HTTPS 并在微信公众平台配置 request 合法域名。
