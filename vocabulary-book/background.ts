@@ -1,3 +1,11 @@
+import {
+  apiFetch,
+  flushPendingWords,
+  postWord,
+  queuePendingWord,
+  setUserInfo
+} from "~lib/api"
+
 // 创建上下文菜单项
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -7,140 +15,147 @@ chrome.runtime.onInstalled.addListener(() => {
   })
 })
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "saveVocabulary") {
-    // 获取选中的文本
-    const selectedText = info.selectionText
+async function notifyTab(tabId: number, message: object) {
+  try {
+    await chrome.tabs.sendMessage(tabId, message)
+  } catch {
+    // 页面内容脚本未就绪时忽略
+  }
+}
 
-    // 向内容脚本发送消息以高亮选中的文本
-    if (tab && tab.id) {
-      chrome.tabs.sendMessage(tab.id, {
-        action: "highlightText",
-        text: selectedText
+// 保存单词：成功顺带冲刷离线队列，失败进入队列等待重试（P1-4）
+async function saveWord(word: string, tabId?: number) {
+  const ok = await postWord(word)
+  if (ok) {
+    await flushPendingWords()
+    if (tabId) {
+      await notifyTab(tabId, {
+        action: "showNotification",
+        message: `已保存词汇: ${word}`
       })
     }
-
-    fetch("http://127.0.0.1:7001/api/word/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        word: selectedText,
-        uid: "123"
+  } else {
+    await queuePendingWord(word)
+    if (tabId) {
+      await notifyTab(tabId, {
+        action: "showNotification",
+        messageType: "warn",
+        message: `后端暂不可用，「${word}」已加入待同步队列`
       })
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("单词已成功发送到API:", selectedText)
-
-          // 可选：在页面上显示一个通知
-          if (tab && tab.id) {
-            chrome.tabs.sendMessage(tab.id, {
-              action: "showNotification",
-              message: `已保存词汇: ${selectedText}`
-            })
-          }
-        } else {
-          console.error("发送到API失败:", response.status)
-        }
-      })
-      .catch((error) => {
-        console.error("网络错误:", error)
-      })
+    }
   }
+  return ok
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== "saveVocabulary") return
+  const selectedText = (info.selectionText || "").trim()
+  if (!selectedText) return
+
+  // 向内容脚本发送消息以高亮选中的文本
+  if (tab?.id) {
+    chrome.tabs.sendMessage(tab.id, {
+      action: "highlightText",
+      text: selectedText
+    })
+  }
+  saveWord(selectedText, tab?.id)
+})
+
+// 浏览器启动时重试离线队列中的单词
+chrome.runtime.onStartup.addListener(() => {
+  flushPendingWords()
 })
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "saveVocabulary") {
-    // 模拟发送 POST 请求到 /api/ 端点
-    fetch("http://127.0.0.1:7001/api/word/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        uid: "123",
-        word: request.data
-      })
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("单词已成功发送到API")
-          // chrome.tabs.sendMessage(tab.id, {
-          //   action: "showNotification",
-          //   message: `已保存词汇: ${selectedText}`
-          // })
-          sendResponse({ success: true })
-        } else {
-          console.error("发送到API失败:", response.status)
-          sendResponse({ success: false, error: "Failed to save to API" })
+  ;(async () => {
+    switch (request.action) {
+      case "saveVocabulary": {
+        const word = (request.data || "").trim()
+        if (!word) {
+          sendResponse({ success: false, message: "词汇内容不能为空" })
+          return
         }
-      })
-      .catch((error) => {
-        console.error("网络错误:", error)
-        sendResponse({ success: false, error: error.message })
-      })
+        const ok = await saveWord(word)
+        if (ok) {
+          sendResponse({ success: true, data: word })
+        } else {
+          sendResponse({
+            success: false,
+            message: "后端暂不可用，已加入待同步队列"
+          })
+        }
+        break
+      }
+      case "getVocabulary": {
+        try {
+          const params = new URLSearchParams()
+          if (request.word) params.set("word", request.word)
+          params.set("page", String(request.page || 1))
+          params.set("limit", String(request.limit || 50))
+          const data = await apiFetch(`/api/word/?${params.toString()}`)
+          sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
+      case "deleteVocabulary": {
+        try {
+          const data = await apiFetch(`/api/word/${request.id}`, {
+            method: "DELETE"
+          })
+          sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
+      case "updateVocabulary": {
+        try {
+          const data = await apiFetch(`/api/word/${request.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ word: request.word })
+          })
+          sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
+      case "getSmsCode": {
+        try {
+          const data = await apiFetch("/api/user/login/sms_send/", {
+            method: "POST",
+            body: JSON.stringify({ phone: request.phone })
+          })
+          sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
+      case "userLogin": {
+        try {
+          const data = await apiFetch("/api/user/login/", {
+            method: "POST",
+            body: JSON.stringify({ phone: request.phone, code: request.code })
+          })
+          // 登录成功后持久化用户信息（含 JWT）
+          if (data?.success && data.data) {
+            await setUserInfo(data.data)
+          }
+          sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
+      default:
+        sendResponse({ success: false, message: "未知操作" })
+    }
+  })()
 
-    // 返回true表示异步响应
-    return true
-  } else if (request.action === "getVocabulary") {
-    // 使用代理方式绕过 CORS 限制
-    fetch(
-      `http://127.0.0.1:7001/api/word/?word=${encodeURIComponent(request.data || "")}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("从API获取的数据:", data)
-        sendResponse(data)
-      })
-      .catch((error) => {
-        console.error("获取数据失败:", error)
-        sendResponse({ error: error.message })
-      })
-    return true
-  } else if (request.action === "getSmsCode") {
-    // 获取短信验证码
-    fetch("http://127.0.0.1:7001/api/user/login/sms_send/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        phone: request.phone
-      })
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("获取验证码结果:", data)
-        sendResponse(data)
-      })
-      .catch((error) => {
-        console.error("获取验证码失败:", error)
-        sendResponse({ success: false, message: "获取验证码失败" })
-      })
-    return true
-  } else if (request.action === "userLogin") {
-    // 用户登录
-    fetch("http://127.0.0.1:7001/api/user/login/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        phone: request.phone,
-        code: request.code
-      })
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("登录结果:", data)
-        sendResponse(data)
-      })
-      .catch((error) => {
-        console.error("登录失败:", error)
-        sendResponse({ success: false, message: "登录失败" })
-      })
-    return true
-  }
+  // 返回 true 表示异步响应
+  return true
 })
