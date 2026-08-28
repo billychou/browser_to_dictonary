@@ -1,0 +1,86 @@
+.login {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 0 64rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  margin-top: 160rpx;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 36rpx;
+  background: #07c160;
+  color: #ffffff;
+  font-size: 64rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  margin-top: 32rpx;
+  font-size: 44rpx;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #8a9099;
+}
+
+.form {
+  width: 100%;
+  margin-top: 96rpx;
+}
+
+.form .input {
+  width: 100%;
+  margin-bottom: 24rpx;
+}
+
+.code-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 48rpx;
+}
+
+.code-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.code-btn {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  color: #07c160;
+  padding: 20rpx 28rpx;
+  background: #f0faf4;
+  border-radius: 12rpx;
+}
+
+.code-btn-disabled {
+  color: #8a9099;
+  background: #f5f6f8;
+}
+
+.submit-btn {
+  width: 100%;
+}
+
+.error {
+  margin-top: 24rpx;
+  font-size: 26rpx;
+  color: #fa5151;
+  text-align: center;
+}
+
+.tip {
+  margin-top: 48rpx;
+}

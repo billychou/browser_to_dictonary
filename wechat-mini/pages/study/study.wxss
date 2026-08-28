@@ -1,0 +1,153 @@
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.grid-item {
+  width: 50%;
+  text-align: center;
+  padding: 20rpx 0;
+  box-sizing: border-box;
+}
+
+.grid-num {
+  font-size: 44rpx;
+  font-weight: 600;
+}
+
+.grid-label {
+  margin-top: 4rpx;
+}
+
+.progress-wrap {
+  margin-top: 16rpx;
+}
+
+.progress-bar {
+  height: 12rpx;
+  background: #eef0f3;
+  border-radius: 6rpx;
+  overflow: hidden;
+}
+
+.progress-inner {
+  height: 100%;
+  background: #07c160;
+  border-radius: 6rpx;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin-top: 12rpx;
+  text-align: right;
+}
+
+.start-btn {
+  width: 100%;
+  margin-top: 8rpx;
+}
+
+.hint {
+  text-align: center;
+  margin-top: 24rpx;
+}
+
+.session-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 8rpx 20rpx;
+}
+
+.exit {
+  color: #8a9099;
+  font-size: 28rpx;
+}
+
+.session-progress {
+  margin-bottom: 40rpx;
+}
+
+.flashcard {
+  min-height: 480rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(31, 35, 41, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  box-sizing: border-box;
+}
+
+.flash-word {
+  font-size: 72rpx;
+  font-weight: 600;
+  word-break: break-all;
+  text-align: center;
+}
+
+.flash-hint {
+  margin-top: 48rpx;
+}
+
+.flash-meta {
+  margin-top: 48rpx;
+  text-align: center;
+  line-height: 1.9;
+}
+
+.answer-row {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 40rpx;
+}
+
+.answer-btn {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.answer-unknown {
+  background: #fff1f0;
+  color: #fa5151;
+}
+
+.answer-fuzzy {
+  background: #fff7e6;
+  color: #fa9d3b;
+}
+
+.answer-known {
+  background: #f0faf4;
+  color: #07c160;
+}
+
+.answer-hint {
+  margin-top: 32rpx;
+}
+
+.done-card {
+  text-align: center;
+  padding: 64rpx 32rpx;
+}
+
+.done-emoji {
+  font-size: 96rpx;
+}
+
+.done-title {
+  margin-top: 24rpx;
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.done-stats {
+  display: flex;
+  margin-top: 40rpx;
+}

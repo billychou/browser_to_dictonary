@@ -1,0 +1,29 @@
+{
+  "pages": [
+    "pages/words/words",
+    "pages/study/study",
+    "pages/profile/profile",
+    "pages/login/login"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "生词本",
+    "backgroundColor": "#f5f6f8",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8a9099",
+    "selectedColor": "#07C160",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/words/words", "text": "生词本" },
+      { "pagePath": "pages/study/study", "text": "复习" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}
