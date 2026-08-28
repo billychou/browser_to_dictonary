@@ -1,5 +1,5 @@
 const api = require("../../utils/request")
-const { getUser, clearSession, isLoggedIn, redirectToLogin } = require("../../utils/auth")
+const { getUser, getToken, clearSession, isLoggedIn, redirectToLogin } = require("../../utils/auth")
 const { getApiBase, setApiBase, DEFAULT_API_BASE } = require("../../config/api")
 const review = require("../../utils/review")
 
@@ -59,6 +59,37 @@ Page({
     }
     setApiBase(url)
     wx.showToast({ title: "已保存", icon: "success" })
+  },
+
+  /** 导出全部生词 CSV：下载后转发给用户保存 */
+  exportCsv() {
+    const token = getToken()
+    if (!token) {
+      redirectToLogin()
+      return
+    }
+    wx.showLoading({ title: "导出中…" })
+    wx.downloadFile({
+      url: getApiBase() + "/api/word/export/",
+      header: { Authorization: "Bearer " + token },
+      success: (res) => {
+        wx.hideLoading()
+        if (res.statusCode !== 200) {
+          wx.showToast({ title: "导出失败，请稍后重试", icon: "none" })
+          return
+        }
+        wx.shareFileMessage({
+          filePath: res.tempFilePath,
+          fileName: "vocabulary.csv",
+          success: () => wx.showToast({ title: "已发送，请在聊天中保存", icon: "none" }),
+          fail: () => wx.showToast({ title: "取消发送", icon: "none" })
+        })
+      },
+      fail: () => {
+        wx.hideLoading()
+        wx.showToast({ title: "导出失败，请检查网络或服务地址", icon: "none" })
+      }
+    })
   },
 
   logout() {

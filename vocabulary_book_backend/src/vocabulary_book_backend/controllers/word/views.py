@@ -7,6 +7,11 @@ Date: 2025/10/14
 Copyright: @sanfendi
 """
 
+import csv
+import io
+from datetime import datetime
+
+from flask import Response
 from flask import g
 from flask_restful import Resource
 from flask_restful import marshal
@@ -122,6 +127,44 @@ class WordDefinitionResource(Resource):
         )
         return marshal(
             dict(success=True, message="success", data=data), word_post_resp_fields
+        )
+
+
+class WordExportResource(Resource):
+    """
+    词汇导出接口（需登录，导出本人全部词汇为 CSV）
+    """
+
+    EXPORT_HEADERS = ["word", "phonetic", "definition", "stage", "review_count", "gmt_create"]
+
+    @api_handler()
+    @jwt_required
+    def get(self):
+        """
+        导出 CSV（UTF-8 带 BOM，Excel/Anki 可直接导入）
+        :return:
+        """
+        words = VocabularyService.query(uid=str(g.current_user.id))
+        buffer = io.StringIO()
+        buffer.write("\ufeff")
+        writer = csv.writer(buffer)
+        writer.writerow(self.EXPORT_HEADERS)
+        for w in words:
+            writer.writerow(
+                [
+                    w.word,
+                    w.phonetic or "",
+                    w.definition or "",
+                    w.stage or 0,
+                    w.review_count or 0,
+                    w.gmt_create.strftime("%Y-%m-%d %H:%M:%S") if w.gmt_create else "",
+                ]
+            )
+        filename = f"vocabulary_{datetime.now().strftime('%Y%m%d')}.csv"
+        return Response(
+            buffer.getvalue(),
+            mimetype="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
 
 

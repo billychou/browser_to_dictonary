@@ -1,6 +1,8 @@
 import {
+  API_BASE,
   apiFetch,
   flushPendingWords,
+  getUserInfo,
   postWord,
   queuePendingWord,
   setUserInfo
@@ -146,6 +148,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             await setUserInfo(data.data)
           }
           sendResponse(data)
+        } catch (error) {
+          sendResponse({ success: false, message: (error as Error).message })
+        }
+        break
+      }
+      case "exportVocabulary": {
+        // 导出 CSV 为文本流，直接 fetch 而非走 JSON 封装
+        try {
+          const info = await getUserInfo()
+          const response = await fetch(`${API_BASE}/api/word/export/`, {
+            headers: info?.token
+              ? { Authorization: `Bearer ${info.token}` }
+              : {}
+          })
+          if (!response.ok) {
+            throw new Error("导出失败，请稍后重试")
+          }
+          const csv = await response.text()
+          sendResponse({ success: true, data: csv })
         } catch (error) {
           sendResponse({ success: false, message: (error as Error).message })
         }

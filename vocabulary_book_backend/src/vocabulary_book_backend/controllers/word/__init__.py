@@ -15,12 +15,14 @@ api = ExternalApi(bp)
 
 from .views import (
     WordDefinitionResource,
+    WordExportResource,
     WordItemResource,
     WordResource,
     WordReviewResource,
 )
 
 api.add_resource(WordResource, "/")
+api.add_resource(WordExportResource, "/export/")
 api.add_resource(WordItemResource, "/<int:word_id>")
 api.add_resource(WordReviewResource, "/<int:word_id>/review")
 api.add_resource(WordDefinitionResource, "/<int:word_id>/definition")
