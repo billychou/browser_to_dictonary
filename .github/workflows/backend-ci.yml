@@ -1,0 +1,67 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vocabulary_book_backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    paths:
+      - "vocabulary_book_backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+defaults:
+  run:
+    working-directory: vocabulary_book_backend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_password
+          MYSQL_DATABASE: sanfendi
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=30
+    env:
+      ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_USERNAME: root
+      DB_PASSWORD: ci_password
+      DB_DATABASE: sanfendi
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: "6379"
+      # 仅用于测试环境
+      JWT_SECRET_KEY: ci-only-secret-key
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: "vocabulary_book_backend/uv.lock"
+      - name: Install dependencies
+        run: uv sync --locked --no-install-project
+      - name: Initialize test database schema
+        run: uv run python tests/setup_schema.py
+      - name: Run tests
+        run: uv run pytest tests/ -v

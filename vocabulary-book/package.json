@@ -37,5 +37,6 @@
     "background": {
       "service_worker": "background.ts"
     }
-  }
+  },
+  "packageManager": "pnpm@11.7.0"
 }

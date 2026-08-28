@@ -1,0 +1,45 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vocabulary-book/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    paths:
+      - "vocabulary-book/**"
+      - ".github/workflows/frontend-ci.yml"
+
+defaults:
+  run:
+    working-directory: vocabulary-book
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # 版本读取 package.json 的 packageManager 字段
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: vocabulary-book/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+      - name: Format check
+        run: pnpm exec prettier --check popup.tsx background.ts contents lib
+      - name: Build
+        run: pnpm build
+      - name: Package
+        run: pnpm package
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-mv3-prod
+          path: vocabulary-book/build/chrome-mv3-prod.zip
