@@ -22,3 +22,6 @@ def init_app(app: Flask):
 
     from controllers.user import bp as user_app_bp
     app.register_blueprint(user_app_bp)
+
+    from controllers.dictionary import bp as dictionary_app_bp
+    app.register_blueprint(dictionary_app_bp)
