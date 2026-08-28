@@ -11,10 +11,14 @@ from typing import List
 
 from sqlalchemy import func, select
 
+from extensions.ext_redis import redis_client
 from libs.client.dictionary_client import DictionaryClient
+from libs.constants import CACHE_WORD_ADD_PREFIX
+from libs.constants import CACHE_WORD_ADD_TIMEOUT
 from libs.constants import REVIEW_FUZZY_DELAY_MINUTES
 from libs.constants import REVIEW_INTERVAL_DAYS
 from libs.constants import REVIEW_MASTERED_STAGE
+from libs.constants import WORD_ADD_LIMIT_PER_MINUTE
 from models import db
 from models.word import Word
 
@@ -31,6 +35,12 @@ class VocabularyService:
         word = kwargs.get("word", None)
         if uid is None or word is None:
             raise Exception("Invalid parameters")
+        add_key = f"{CACHE_WORD_ADD_PREFIX}:{uid}"
+        add_count = redis_client.incr(add_key)
+        if int(add_count) == 1:
+            redis_client.expire(add_key, CACHE_WORD_ADD_TIMEOUT)
+        if int(add_count) > WORD_ADD_LIMIT_PER_MINUTE:
+            raise Exception("添加过于频繁，请稍后再试")
         result = db.session.execute(
             select(Word).where(Word.uid == uid, Word.word == word)
         ).scalars().first()

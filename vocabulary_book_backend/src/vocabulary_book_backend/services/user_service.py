@@ -19,6 +19,9 @@ from libs.constants import CACHE_SMS_CODE_ERR_MAX
 from libs.constants import CACHE_SMS_CODE_ERR_PREFIX
 from libs.constants import CACHE_SMS_CODE_PREFIX
 from libs.constants import CACHE_SMS_CODE_TIMEOUT
+from libs.constants import CACHE_SMS_DAILY_PREFIX
+from libs.constants import CACHE_SMS_DAILY_TIMEOUT
+from libs.constants import SMS_DAILY_LIMIT
 from models import db
 from models.user import User
 from services.wechat_service import WeChatService
@@ -142,6 +145,12 @@ class UserService(object):
         exist_code: bytes = redis_client.get(f"{CACHE_SMS_CODE_PREFIX}:{phone}")
         if exist_code:
             raise Exception("验证码已发送，请稍后再试")
+        daily_key = f"{CACHE_SMS_DAILY_PREFIX}:{phone}"
+        daily_count = redis_client.incr(daily_key)
+        if int(daily_count) == 1:
+            redis_client.expire(daily_key, CACHE_SMS_DAILY_TIMEOUT)
+        if int(daily_count) > SMS_DAILY_LIMIT:
+            raise Exception("今日验证码发送次数过多，请明天再试")
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         SmsClient.send(code, phone)
         cache_key = f"{CACHE_SMS_CODE_PREFIX}:{phone}"
