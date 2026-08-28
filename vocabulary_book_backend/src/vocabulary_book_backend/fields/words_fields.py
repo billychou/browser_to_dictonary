@@ -13,6 +13,11 @@ word_fields = {
     "id": fields.Integer,
     "uid": fields.String,
     "word": fields.String,
+    "stage": fields.Integer,
+    "due": fields.DateTime,
+    "review_count": fields.Integer,
+    "lapse_count": fields.Integer,
+    "last_review": fields.DateTime,
     "gmt_create": fields.DateTime,
     "gmt_update": fields.DateTime,
 }

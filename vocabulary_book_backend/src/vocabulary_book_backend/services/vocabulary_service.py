@@ -6,10 +6,14 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/10/14
 Copyright: @sanfendi
 """
+from datetime import datetime, timedelta
 from typing import List
 
 from sqlalchemy import func, select
 
+from libs.constants import REVIEW_FUZZY_DELAY_MINUTES
+from libs.constants import REVIEW_INTERVAL_DAYS
+from libs.constants import REVIEW_MASTERED_STAGE
 from models import db
 from models.word import Word
 
@@ -150,6 +154,37 @@ class VocabularyService:
         word = VocabularyService.get_owned(uid, word_id)
         db.session.delete(word)
         db.session.commit()
+
+    @staticmethod
+    def review_owned(uid: str, word_id: int, result: str) -> Word:
+        """
+        记录一次间隔复习结果并更新排期，规则与小程序端一致：
+        - known   升一级（上限最高级），按新等级间隔排期，达到最高级即已掌握
+        - fuzzy   等级不变，稍后（分钟级）重新复习
+        - unknown 回到 0 级并立即重新排入队列
+        :param uid: 用户ID（字符串）
+        :param word_id: 词汇记录ID
+        :param result: known | fuzzy | unknown
+        :return: 更新后的词汇记录
+        """
+        if result not in ("known", "fuzzy", "unknown"):
+            raise Exception("无效的复习结果")
+        word = VocabularyService.get_owned(uid, word_id)
+        now = datetime.now()
+        word.review_count = (word.review_count or 0) + 1
+        word.last_review = now
+        if result == "known":
+            word.stage = min((word.stage or 0) + 1, REVIEW_MASTERED_STAGE)
+            word.due = now + timedelta(days=REVIEW_INTERVAL_DAYS[word.stage])
+        elif result == "fuzzy":
+            word.due = now + timedelta(minutes=REVIEW_FUZZY_DELAY_MINUTES)
+        else:
+            word.stage = 0
+            word.lapse_count = (word.lapse_count or 0) + 1
+            word.due = now
+        db.session.add(word)
+        db.session.commit()
+        return word
 
     @staticmethod
     def update_owned(uid: str, word_id: int, word_text: str) -> Word:
