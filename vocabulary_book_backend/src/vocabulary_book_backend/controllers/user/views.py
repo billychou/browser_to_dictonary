@@ -37,19 +37,30 @@ class UserLoginResource(Resource):
     def post(self, action_type=None):
         """用户登录"""
         parser = reqparse.RequestParser()
-        parser.add_argument("phone", type=str, required=True, location="json")
+        parser.add_argument("phone", type=str, required=False, location="json")
         parser.add_argument("code", type=str, required=False, location="json")  # 短信验证码或微信授权码
         args = parser.parse_args()
-        
+
         try:
             if action_type == "sms_send":
+                if not args.get("phone"):
+                    raise Exception("手机号不能为空")
                 data = self.user_service.send_sms_code(phone=args.get("phone"))
                 return {
                     "success": True,
                     "message": "发送成功",
                     "data": data
                 }
+            elif action_type == "wechat":
+                data = self.user_service.login_by_wechat(code=args.get("code"))
+                return {
+                    "success": True,
+                    "message": "登录成功",
+                    "data": data
+                }
             else:
+                if not args.get("phone"):
+                    raise Exception("手机号不能为空")
                 data = self.user_service.login_by_phone(phone=args.get("phone"), code=args.get("code"))
                 return {
                     "success": True,

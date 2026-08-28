@@ -46,7 +46,7 @@
 3. **数据导出**：支持导出 CSV / Anki 牌组，降低用户迁移顾虑。
 4. **划词即查**：选中即弹出小浮层显示释义 + "加入词汇书"按钮，比右键菜单少一步。
 5. **多端同步**：提供 Web 端词汇书页面，账号数据天然云端化（依赖 P0-1 完成）。
-6. **小程序微信一键登录**：现有 `WeChatService` 是网站 OAuth 流程且未注册路由；为小程序新增 `jscode2session`（code2session → openid 登录/注册）接口后，小程序端可静默登录，免短信验证码。
+6. **~~小程序微信一键登录~~（已完成）**：`POST /api/user/login/wechat/` 已接通 `jscode2session`（code → openid 登录/注册，签发 JWT），小程序端微信一键登录可用；需在 `.env` 配置 `WECHAT_MINI_APP_ID` / `WECHAT_MINI_APP_SECRET`，未配置时自动回退短信登录。
 
 ## 建议落地顺序
 

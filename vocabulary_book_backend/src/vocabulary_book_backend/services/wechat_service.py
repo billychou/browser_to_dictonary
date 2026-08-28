@@ -17,8 +17,40 @@ from models import User, db
 class WeChatService:
     """
     微信服务类，处理微信相关的业务逻辑
-    网站登录
+    网站登录 / 小程序登录
     """
+
+    def code2session(self, code: str) -> Dict[str, Any]:
+        """
+        小程序登录凭证校验：wx.login 的 code 换取 openid/unionid/session_key
+        :param code: 小程序 wx.login 返回的临时登录凭证
+        :return: 微信返回的会话信息，至少包含 openid
+        """
+        app_id = current_app.config.get("WECHAT_MINI_APP_ID")
+        app_secret = current_app.config.get("WECHAT_MINI_APP_SECRET")
+        if not app_id or not app_secret:
+            raise Exception(
+                "微信登录未开启：服务端未配置 WECHAT_MINI_APP_ID / WECHAT_MINI_APP_SECRET"
+            )
+
+        url = "https://api.weixin.qq.com/sns/jscode2session"
+        params = {
+            "appid": app_id,
+            "secret": app_secret,
+            "js_code": code,
+            "grant_type": "authorization_code",
+        }
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+        except Exception as e:
+            raise Exception(f"请求微信接口失败: {str(e)}")
+
+        if data.get("errcode"):
+            raise Exception(
+                f"微信授权失败: errcode={data.get('errcode')}, errmsg={data.get('errmsg')}"
+            )
+        return data
 
     def get_access_token(self, code: str) -> Optional[Dict[str, Any]]:
         """

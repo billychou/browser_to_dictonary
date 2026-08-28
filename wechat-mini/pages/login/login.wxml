@@ -4,6 +4,19 @@
   <view class="subtitle">浏览器划词收集 · 随时随地复习</view>
 
   <view class="form">
+    <button
+      class="btn-primary wx-btn"
+      loading="{{wxLoading}}"
+      disabled="{{wxLoading}}"
+      bindtap="wechatLogin"
+    >微信一键登录</button>
+
+    <view class="divider">
+      <view class="divider-line"></view>
+      <view class="divider-text">或使用手机号登录</view>
+      <view class="divider-line"></view>
+    </view>
+
     <input
       class="input"
       type="number"
@@ -29,7 +42,7 @@
       >{{countdown > 0 ? countdown + 's 后重发' : '获取验证码'}}</view>
     </view>
     <button
-      class="btn-primary submit-btn"
+      class="btn-plain submit-btn"
       disabled="{{loading}}"
       bindtap="submit"
     >{{loading ? '登录中…' : '登录 / 注册'}}</button>

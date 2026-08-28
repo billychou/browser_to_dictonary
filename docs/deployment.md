@@ -27,6 +27,7 @@ Chrome 扩展 ──HTTPS──▶ Nginx(443) ──▶ gunicorn(7001) ──▶
 | `REDIS_HOST` / `REDIS_PORT` | Redis（验证码缓存、迁移锁） |
 | `JWT_SECRET_KEY` | 随机长字符串（`openssl rand -hex 32`），未配置时接口直接报 500 |
 | `ALIBABA_CLOUD_ACCESS_KEY_*` / `SMS_API_*` | 阿里云短信 |
+| `WECHAT_MINI_APP_ID` / `WECHAT_MINI_APP_SECRET` | 可选，微信小程序一键登录；留空时仅短信登录可用 |
 
 ## 方式一：Docker Compose（推荐）
 

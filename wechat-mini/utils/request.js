@@ -57,6 +57,15 @@ function sendSmsCode(phone) {
   })
 }
 
+// 微信一键登录：wx.login 的 code 换取 JWT（不存在自动注册）
+function wechatLogin(code) {
+  return request("/api/user/login/wechat/", {
+    method: "POST",
+    data: { code },
+    auth: false
+  })
+}
+
 // 手机号 + 验证码登录（不存在自动注册）
 function login(phone, code) {
   return request("/api/user/login/", {
@@ -66,9 +75,9 @@ function login(phone, code) {
   })
 }
 
-// 当前用户信息
+// 当前用户信息（注意：该路由注册为 /api/user，无尾斜杠）
 function fetchUserInfo() {
-  return request("/api/user/")
+  return request("/api/user")
 }
 
 // 分页查询词汇列表（后端 word 参数为精确匹配）
@@ -102,6 +111,7 @@ function deleteWord(wordId) {
 module.exports = {
   request,
   sendSmsCode,
+  wechatLogin,
   login,
   fetchUserInfo,
   fetchWords,

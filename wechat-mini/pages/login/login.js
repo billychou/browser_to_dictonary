@@ -7,6 +7,7 @@ Page({
     code: "",
     countdown: 0,
     loading: false,
+    wxLoading: false,
     message: ""
   },
 
@@ -22,6 +23,33 @@ Page({
 
   onCodeInput(e) {
     this.setData({ code: e.detail.value, message: "" })
+  },
+
+  /** 微信一键登录：wx.login 拿 code → 后端 code2session → JWT */
+  wechatLogin() {
+    this.setData({ wxLoading: true, message: "" })
+    wx.login({
+      success: (res) => {
+        if (!res.code) {
+          this.setData({ wxLoading: false, message: "微信授权失败，请重试" })
+          return
+        }
+        api
+          .wechatLogin(res.code)
+          .then((data) => {
+            setSession(data.token, data.user_info)
+            wx.reLaunch({ url: "/pages/words/words" })
+          })
+          .catch((err) => {
+            // 后端未配置小程序凭据时微信登录不可用，引导走短信登录
+            this.setData({ message: err.message })
+          })
+          .finally(() => this.setData({ wxLoading: false }))
+      },
+      fail: () => {
+        this.setData({ wxLoading: false, message: "微信授权失败，请检查网络" })
+      }
+    })
   },
 
   validPhone() {

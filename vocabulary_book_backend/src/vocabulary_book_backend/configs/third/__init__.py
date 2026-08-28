@@ -8,9 +8,10 @@ Copyright: @sanfendi
 """
 from .sms_config import AlibabaCloudConfig
 from .sms_config import SmsConfig
+from .wechat_config import WeChatMiniConfig
 
 
-class ThirdConfig(SmsConfig, AlibabaCloudConfig):
+class ThirdConfig(SmsConfig, AlibabaCloudConfig, WeChatMiniConfig):
     """
     第三方配置
     """
@@ -19,5 +20,6 @@ class ThirdConfig(SmsConfig, AlibabaCloudConfig):
 
 __all__ = [
     ThirdConfig,
-    SmsConfig
+    SmsConfig,
+    WeChatMiniConfig
 ]
