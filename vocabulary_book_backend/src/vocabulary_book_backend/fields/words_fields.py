@@ -21,6 +21,9 @@ word_fields = {
     "review_count": fields.Integer,
     "lapse_count": fields.Integer,
     "last_review": _iso,
+    "phonetic": fields.String,
+    "definition": fields.String,
+    "detail": fields.Raw,
     "gmt_create": _iso,
     "gmt_update": _iso,
 }

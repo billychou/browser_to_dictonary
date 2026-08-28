@@ -67,7 +67,11 @@ Page({
   },
 
   decorate(w) {
-    return { ...w, relativeTime: formatRelative(w.gmt_update) }
+    return {
+      ...w,
+      relativeTime: formatRelative(w.gmt_update),
+      defShort: (w.definition || "").split("\n")[0]
+    }
   },
 
   loadMore() {

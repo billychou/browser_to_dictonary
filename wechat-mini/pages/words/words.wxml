@@ -48,7 +48,10 @@
       data-item="{{item}}"
       bindtap="onWordTap"
     >
-      <view class="word-text">{{item.word}}</view>
+      <view class="word-body">
+        <view class="word-text">{{item.word}}</view>
+        <view class="word-def muted" wx:if="{{item.defShort}}">{{item.defShort}}</view>
+      </view>
       <view class="word-meta muted">{{item.relativeTime}}</view>
     </view>
     <view class="list-footer muted">

@@ -55,10 +55,22 @@
   margin-bottom: 16rpx;
 }
 
+.word-body {
+  flex: 1;
+  overflow: hidden;
+}
+
 .word-text {
   font-size: 32rpx;
   font-weight: 500;
   word-break: break-all;
+}
+
+.word-def {
+  margin-top: 6rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .word-meta {

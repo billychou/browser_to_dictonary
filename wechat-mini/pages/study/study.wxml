@@ -60,9 +60,16 @@
         <view class="flash-hint muted">想一想这个词的含义，点击卡片核对</view>
       </block>
       <block wx:else>
+        <view class="flash-phonetic" wx:if="{{current.phonetic}}">{{current.phonetic}}</view>
+        <view class="flash-def" wx:if="{{current.definition}}">{{current.definition}}</view>
+        <view class="flash-example" wx:if="{{currentExample}}">“{{currentExample}}”</view>
+        <view class="flash-nodef" wx:if="{{!current.definition && !defLoading}}" catchtap="fetchDefinition">
+          {{defFailed ? '释义查询失败，点击重试' : '暂无释义，点击查询'}}
+        </view>
+        <view class="flash-nodef muted" wx:if="{{defLoading}}">正在查询释义…</view>
         <view class="flash-meta muted">
-          <view>添加于 {{currentDays}} 天前 · 已复习 {{currentReviews}} 次</view>
-          <view>当前等级 {{currentStage}}/5 · {{stageTip}}</view>
+          <view>添加于 {{currentDays}} 天前 · 已复习 {{currentReviews}} 次 · 等级 {{currentStage}}/5</view>
+          <view>{{stageTip}}</view>
         </view>
       </block>
     </view>

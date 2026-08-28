@@ -92,8 +92,39 @@
   margin-top: 48rpx;
 }
 
+.flash-phonetic {
+  margin-top: 32rpx;
+  color: #8a9099;
+  font-size: 32rpx;
+}
+
+.flash-def {
+  margin-top: 24rpx;
+  font-size: 30rpx;
+  line-height: 1.7;
+  white-space: pre-line;
+  max-height: 300rpx;
+  overflow: hidden;
+}
+
+.flash-example {
+  margin-top: 20rpx;
+  color: #8a9099;
+  font-size: 26rpx;
+  font-style: italic;
+}
+
+.flash-nodef {
+  margin-top: 32rpx;
+  color: #07c160;
+  font-size: 28rpx;
+  padding: 12rpx 32rpx;
+  background: #f0faf4;
+  border-radius: 12rpx;
+}
+
 .flash-meta {
-  margin-top: 48rpx;
+  margin-top: 40rpx;
   text-align: center;
   line-height: 1.9;
 }

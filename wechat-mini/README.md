@@ -8,8 +8,8 @@
 | 页面 | 功能 |
 | --- | --- |
 | 登录 | 微信一键登录（`wx.login` code → `jscode2session`，需后端配置小程序凭据）；未配置时回退手机号 + 短信验证码 |
-| 生词本 | 全量词汇、本地模糊搜索、手动添加、编辑、删除、下拉刷新 |
-| 复习 | 艾宾浩斯间隔复习卡片（认识 / 模糊 / 不认识），今日待复习/已复习统计 |
+| 生词本 | 全量词汇（含释义摘要）、本地模糊搜索、手动添加、编辑、删除、下拉刷新 |
+| 复习 | 艾宾浩斯间隔复习卡片（认识 / 模糊 / 不认识；翻面展示音标/释义/例句，可补查），今日待复习/已复习统计 |
 | 我的 | 用户信息、学习数据（总词数/已掌握/累计复习/连续天数）、服务地址配置、退出登录 |
 
 ## 目录结构
@@ -41,6 +41,7 @@ wechat-mini/
 | `POST /api/user/login/sms_send/` | 发送短信验证码 |
 | `POST /api/user/login/` | 手机号登录/注册，返回 `{user_info, token}` |
 | `PUT /api/word/<id>/review` | 记录复习结果 `{result: known/fuzzy/unknown}`，服务端统一排期 |
+| `PUT /api/word/<id>/definition` | 补查词典释义（保存时查询失败可重试） |
 | `GET /api/word/?page=&limit=` | 分页词汇列表（JWT） |
 | `POST /api/word/` · `PUT /api/word/<id>` · `DELETE /api/word/<id>` | 增/改/删（JWT） |
 

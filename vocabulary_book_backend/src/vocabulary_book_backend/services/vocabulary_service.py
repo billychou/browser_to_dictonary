@@ -11,6 +11,7 @@ from typing import List
 
 from sqlalchemy import func, select
 
+from libs.client.dictionary_client import DictionaryClient
 from libs.constants import REVIEW_FUZZY_DELAY_MINUTES
 from libs.constants import REVIEW_INTERVAL_DAYS
 from libs.constants import REVIEW_MASTERED_STAGE
@@ -41,6 +42,7 @@ class VocabularyService:
         word = Word(**kwargs)
         db.session.add(word)
         db.session.commit()
+        VocabularyService.enrich_definition(word)
         return word
 
     @staticmethod
@@ -154,6 +156,48 @@ class VocabularyService:
         word = VocabularyService.get_owned(uid, word_id)
         db.session.delete(word)
         db.session.commit()
+
+    @staticmethod
+    def enrich_definition(word: Word) -> Word:
+        """
+        查询词典释义并落库，尽力而为：查询失败不影响单词本身
+        :param word: 词汇记录
+        :return: 词汇记录（可能已附带释义）
+        """
+        try:
+            result = DictionaryClient.lookup(word.word)
+        except Exception:
+            return word
+        if not result:
+            return word
+        word.phonetic = result["phonetic"]
+        word.definition = result["definition"]
+        word.detail = result["detail"]
+        db.session.add(word)
+        db.session.commit()
+        return word
+
+    @staticmethod
+    def refresh_definition_owned(uid: str, word_id: int) -> Word:
+        """
+        重新查询并更新释义（用于首次保存时查询失败的补查）
+        :param uid: 用户ID（字符串）
+        :param word_id: 词汇记录ID
+        :return: 更新后的词汇记录
+        """
+        word = VocabularyService.get_owned(uid, word_id)
+        try:
+            result = DictionaryClient.lookup(word.word)
+        except Exception:
+            raise Exception("释义查询失败，请稍后重试")
+        if not result:
+            raise Exception("未查询到该词的释义")
+        word.phonetic = result["phonetic"]
+        word.definition = result["definition"]
+        word.detail = result["detail"]
+        db.session.add(word)
+        db.session.commit()
+        return word
 
     @staticmethod
     def review_owned(uid: str, word_id: int, result: str) -> Word:
