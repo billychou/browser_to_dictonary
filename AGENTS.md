@@ -24,6 +24,8 @@ This monorepo contains a Chrome extension, its WeChat mini-program companion, an
 **Mini-program** (`wechat-mini/`):
 - No build step. Import the directory into WeChat DevTools (test AppID works); enable "不校验合法域名" for local development against `http://127.0.0.1:7001`.
 
+**Full local setup without Docker** (Homebrew MySQL/Redis, all three clients): `docs/local-development.md`.
+
 **Backend** (`vocabulary_book_backend/`, uv preferred; `poetry.lock` also present):
 - `uv sync` — install dependencies into `.venv`.
 - `cd src/vocabulary_book_backend && python app.py` — run locally on port 7001.

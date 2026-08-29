@@ -1,5 +1,7 @@
 # 部署与运维指南
 
+> 本地开发（非 Docker）请看 [local-development.md](local-development.md)。
+
 > 配套文档：[product.md](./product.md)、[roadmap.md](./roadmap.md)。
 
 ## 部署架构
