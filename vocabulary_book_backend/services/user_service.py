@@ -6,8 +6,10 @@ Author: songchuan.zhou(651265044@qq.com)
 Date: 2025/11/5
 Copyright: @sanfendi
 """
+import json
 import random
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 
 import jwt
@@ -21,6 +23,8 @@ from libs.constants import CACHE_SMS_CODE_PREFIX
 from libs.constants import CACHE_SMS_CODE_TIMEOUT
 from libs.constants import CACHE_SMS_DAILY_PREFIX
 from libs.constants import CACHE_SMS_DAILY_TIMEOUT
+from libs.constants import CACHE_WECHAT_LOGIN_TICKET_PREFIX
+from libs.constants import CACHE_WECHAT_LOGIN_TICKET_TIMEOUT
 from libs.constants import SMS_DAILY_LIMIT
 from models import db
 from models.user import User
@@ -64,19 +68,95 @@ class UserService(object):
         openid = session_info.get("openid")
         if not openid:
             raise Exception("微信授权失败：未获取到 openid")
+        unionid = session_info.get("unionid")
 
-        user = db.session.query(User).filter(User.wechat_openid == openid).first()
+        # 优先按 unionid 匹配：小程序与扩展网站应用绑定同一开放平台账号时，
+        # unionid 一致即可共享同一账号
+        user = None
+        if unionid:
+            user = db.session.query(User).filter(
+                User.wechat_unionid == unionid
+            ).first()
+        if not user:
+            user = db.session.query(User).filter(
+                User.wechat_openid == openid
+            ).first()
         if not user:
             user = User(
                 wechat_openid=openid,
-                wechat_unionid=session_info.get("unionid"),
+                wechat_unionid=unionid,
             )
             db.session.add(user)
             db.session.flush()
             db.session.commit()
+        elif not user.wechat_openid:
+            user.wechat_openid = openid
+            db.session.commit()
 
         token = self.generate_token(user.id)
         return dict(user_info=user.to_dict(), token=token)
+
+    def create_wechat_login_ticket(self) -> Dict[str, Any]:
+        """
+        生成一次性微信扫码登录票据（Chrome 扩展扫码登录第一步）。
+        票据初始值为 pending，用户扫码确认后由回调写入登录态，
+        扩展端轮询 poll_wechat_login_ticket 获取结果。
+        :return: dict(ticket, qrcode_url)
+        """
+        ticket = uuid.uuid4().hex
+        qrcode_url = WeChatService().build_qrconnect_url(state=ticket)
+        redis_client.setex(
+            f"{CACHE_WECHAT_LOGIN_TICKET_PREFIX}:{ticket}",
+            CACHE_WECHAT_LOGIN_TICKET_TIMEOUT,
+            "pending",
+        )
+        return dict(ticket=ticket, qrcode_url=qrcode_url)
+
+    def confirm_wechat_login_by_ticket(self, ticket: str, code: str) -> Dict[str, Any]:
+        """
+        微信扫码回调确认登录：校验票据有效后，用授权码完成
+        网站应用登录并将 {user_info, token} 挂到票据上供扩展轮询消费。
+        :param ticket: 一次性登录票据（即微信回调带回的 state）
+        :param code: 微信授权码
+        :return: dict(user_info, token)
+        """
+        if not ticket:
+            raise Exception("登录票据不能为空")
+        if not code:
+            raise Exception("微信授权码不能为空")
+        cache_key = f"{CACHE_WECHAT_LOGIN_TICKET_PREFIX}:{ticket}"
+        if redis_client.get(cache_key) is None:
+            raise Exception("二维码已过期，请在扩展中重新发起微信登录")
+
+        user = WeChatService().process_wechat_login(code)
+        token = self.generate_token(user.id)
+        data = dict(user_info=user.to_dict(), token=token)
+        # 覆盖写入登录态，沿用原有效期
+        redis_client.setex(
+            cache_key, CACHE_WECHAT_LOGIN_TICKET_TIMEOUT, json.dumps(data)
+        )
+        return data
+
+    @staticmethod
+    def poll_wechat_login_ticket(ticket: str) -> Dict[str, Any]:
+        """
+        扩展轮询扫码登录结果。确认成功后删除票据，只能兑换一次。
+        :param ticket: 一次性登录票据
+        :return: {"status": "pending" | "confirmed" | "expired", ...}
+        """
+        if not ticket:
+            return dict(status="expired")
+        cache_key = f"{CACHE_WECHAT_LOGIN_TICKET_PREFIX}:{ticket}"
+        value = redis_client.get(cache_key)
+        if value is None:
+            # 票据不存在或已过期：扩展需引导用户重新获取二维码
+            return dict(status="expired")
+        if value == b"pending":
+            return dict(status="pending")
+        # 登录已确认：消费票据并返回登录态
+        redis_client.delete(cache_key)
+        data = json.loads(value)
+        return dict(status="confirmed", **data)
 
     @staticmethod
     def get_user_by_phone(phone: str) -> User:
@@ -98,13 +178,17 @@ class UserService(object):
 
     def generate_token(self, user_id):
         """
+        签发 JWT。exp/iat 必须使用 UTC 时间：PyJWT 将 naive 时间按 UTC 解释，
+        若用本地时间签发，非 UTC 时区的机器会产生最多数小时的时钟偏差，
+        导致校验端报 ImmatureSignatureError（无效的登录凭证）。
         :param user_id:
         :return:
         """
+        now = datetime.now(timezone.utc)
         payload = {
             'user_id': user_id,
-            'exp': datetime.now() + timedelta(days=30),
-            'iat': datetime.now()
+            'exp': now + timedelta(days=30),
+            'iat': now
         }
         jwt_secret_key = app_config.JWT_SECRET_KEY
         if not jwt_secret_key:

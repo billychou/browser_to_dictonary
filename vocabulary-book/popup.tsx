@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { isLoggedIn } from "~lib/api"
 
@@ -10,20 +10,35 @@ type WordItem = {
   gmt_update?: string
 }
 
+// 扫码等待上限：与后端票据有效期（300s）对齐
+const POLL_INTERVAL_MS = 2000
+const POLL_TIMEOUT_MS = 300 * 1000
+
 function IndexPopup() {
   const [data, setData] = useState("")
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null)
-  const [phone, setPhone] = useState("")
-  const [code, setCode] = useState("")
+  const [waitingScan, setWaitingScan] = useState(false)
   const [loginMessage, setLoginMessage] = useState("")
   const [pageMessage, setPageMessage] = useState("")
   const [words, setWords] = useState<WordItem[]>([])
   const [total, setTotal] = useState(0)
+  const pollTimer = useRef<number | null>(null)
+  const pollDeadline = useRef<number | null>(null)
+
+  const stopPolling = useCallback(() => {
+    if (pollTimer.current !== null) {
+      window.clearInterval(pollTimer.current)
+      pollTimer.current = null
+    }
+  }, [])
 
   // P1-6: 打开弹窗时基于 JWT 过期时间判断登录态
   useEffect(() => {
     isLoggedIn().then(setLoggedIn)
   }, [])
+
+  // 关闭弹窗时停止轮询
+  useEffect(() => stopPolling, [stopPolling])
 
   const loadWords = useCallback(() => {
     chrome.runtime.sendMessage({ action: "getVocabulary" }, (response) => {
@@ -39,6 +54,55 @@ function IndexPopup() {
   useEffect(() => {
     if (loggedIn) loadWords()
   }, [loggedIn, loadWords])
+
+  const pollOnce = useCallback(
+    (pollTicket: string) => {
+      if (Date.now() > (pollDeadline.current || 0)) {
+        stopPolling()
+        setWaitingScan(false)
+        setLoginMessage("二维码已过期，请重新发起微信登录")
+        return
+      }
+      chrome.runtime.sendMessage(
+        { action: "wechatLoginPoll", ticket: pollTicket },
+        (response) => {
+          const status = response?.data?.status
+          if (response?.success && status === "confirmed") {
+            stopPolling()
+            setWaitingScan(false)
+            setLoginMessage("")
+            setLoggedIn(true)
+          } else if (status === "expired") {
+            stopPolling()
+            setWaitingScan(false)
+            setLoginMessage("二维码已过期，请重新发起微信登录")
+          }
+          // pending：继续等待，不做处理
+        }
+      )
+    },
+    [stopPolling]
+  )
+
+  const handleWechatLogin = () => {
+    setLoginMessage("")
+    chrome.runtime.sendMessage({ action: "wechatLoginStart" }, (response) => {
+      if (response?.success) {
+        const newTicket = response.data?.ticket || ""
+        setWaitingScan(true)
+        setLoginMessage("已在新标签页打开微信二维码，请用手机微信扫码并确认")
+        stopPolling()
+        pollDeadline.current = Date.now() + POLL_TIMEOUT_MS
+        pollTimer.current = window.setInterval(
+          () => pollOnce(newTicket),
+          POLL_INTERVAL_MS
+        )
+      } else {
+        setWaitingScan(false)
+        setLoginMessage(response?.message || "发起微信登录失败")
+      }
+    })
+  }
 
   const handleExport = () => {
     chrome.runtime.sendMessage({ action: "exportVocabulary" }, (response) => {
@@ -101,77 +165,36 @@ function IndexPopup() {
     })
   }
 
-  const handleLogin = () => {
-    if (!phone) {
-      setLoginMessage("请输入手机号")
-      return
-    }
-    if (!code) {
-      setLoginMessage("请输入验证码")
-      return
-    }
-    chrome.runtime.sendMessage(
-      { action: "userLogin", phone, code },
-      (response) => {
-        if (response?.success) {
-          setLoggedIn(true)
-          setLoginMessage("")
-        } else {
-          setLoginMessage(response?.message || "登录失败")
-        }
-      }
-    )
-  }
-
-  const handleGetCode = () => {
-    if (!phone) {
-      setLoginMessage("请输入手机号")
-      return
-    }
-    chrome.runtime.sendMessage({ action: "getSmsCode", phone }, (response) => {
-      if (response?.success) {
-        setLoginMessage("验证码已发送")
-      } else {
-        setLoginMessage(response?.message || "发送验证码失败")
-      }
-    })
-  }
-
   if (loggedIn === null) return null
 
   if (!loggedIn) {
     return (
       <div className="p-4 w-80">
-        <h2 className="text-xl font-bold mb-4 text-center">用户登录</h2>
-        <div className="mb-3">
-          <input
-            onChange={(e) => setPhone(e.target.value)}
-            value={phone}
-            placeholder="请输入手机号"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="flex">
-            <input
-              onChange={(e) => setCode(e.target.value)}
-              value={code}
-              placeholder="请输入验证码"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md mr-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        <h2 className="text-xl font-bold mb-2 text-center">用户登录</h2>
+        <p className="text-sm text-gray-400 text-center mb-4">
+          使用微信扫码登录，与微信小程序共享词汇书
+        </p>
+        {waitingScan ? (
+          <div className="mb-3 text-center">
+            <div className="text-sm text-gray-600 animate-pulse">
+              等待微信扫码确认…
+            </div>
             <button
-              onClick={handleGetCode}
-              className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-              获取验证码
+              onClick={handleWechatLogin}
+              className="mt-3 text-xs text-blue-400 hover:text-blue-600">
+              重新获取二维码
             </button>
           </div>
-        </div>
-        {loginMessage && (
-          <div className="mb-3 text-red-500 text-sm">{loginMessage}</div>
+        ) : (
+          <button
+            onClick={handleWechatLogin}
+            className="w-full bg-[#07C160] hover:bg-[#06ad56] text-white font-medium py-2 px-4 rounded-md transition duration-200">
+            微信扫码登录
+          </button>
         )}
-        <button
-          onClick={handleLogin}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-          登录
-        </button>
+        {loginMessage && (
+          <div className="mt-3 text-red-500 text-sm">{loginMessage}</div>
+        )}
       </div>
     )
   }

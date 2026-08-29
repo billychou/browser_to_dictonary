@@ -5,7 +5,8 @@
 
 ## 通用约定
 
-- **鉴权**：需要登录的接口携带 `Authorization: Bearer <JWT>`（HS256，30 天有效期，`POST /api/user/login/` 签发）。
+- **鉴权**：需要登录的接口携带 `Authorization: Bearer <JWT>`（HS256，30 天有效期，登录接口签发）。
+- **登录方式**：Chrome 扩展使用微信开放平台扫码登录（`/api/user/login/wechat/ticket/` 系列）；微信小程序使用微信一键登录，短信登录作为兜底保留。两端绑定同一开放平台账号时按 unionid 共享同一账号。
 - **统一响应结构**：`{ "success": bool, "message": string, "data": object | null }`。
 - **状态码**：200 成功；400 业务错误（含统一响应体）；401 未登录/凭证失效；404 路由不存在。
 - **时间字段**：ISO 8601（如 `2026-08-29T23:09:00`）。
@@ -24,9 +25,12 @@
 
 | 接口 | 鉴权 | 说明 |
 | --- | --- | --- |
-| `POST /api/user/login/sms_send/` | 否 | 发送短信验证码 `{phone}`。300s 防重发；同一手机号每日上限 10 次 |
-| `POST /api/user/login/` | 否 | 手机号登录/注册 `{phone, code}` → `{user_info, token}` |
+| `POST /api/user/login/wechat/ticket/` | 否 | 扩展扫码登录①：生成一次性票据 → `{ticket, qrcode_url}`（微信官方扫码页），扩展打开该页并轮询票据；票据 300s 有效。未配置 `WECHAT_OPEN_*` 时返回业务错误 |
+| `GET /api/user/login/wechat/callback/` | 否 | 扩展扫码登录②：微信开放平台授权回调（`?code=&state=<ticket>`），服务端换取用户信息并签发 JWT 挂到票据上；返回 HTML 结果页（非 JSON），回调域名须与 `WECHAT_OPEN_REDIRECT_URI` 一致 |
+| `GET /api/user/login/wechat/ticket/<ticket>/` | 否 | 扩展扫码登录③：轮询扫码结果 → `data.status`：`pending` 等待扫码 / `confirmed`（附 `{user_info, token}`，票据一次性消费）/ `expired` 已过期 |
 | `POST /api/user/login/wechat/` | 否 | 小程序一键登录 `{code}`（wx.login 凭证）→ `{user_info, token}`；未配置 `WECHAT_MINI_APP_ID/SECRET` 时返回业务错误 |
+| `POST /api/user/login/sms_send/` | 否 | 发送短信验证码 `{phone}`（小程序兜底登录用）。300s 防重发；同一手机号每日上限 10 次 |
+| `POST /api/user/login/` | 否 | 手机号登录/注册 `{phone, code}` → `{user_info, token}`（小程序兜底登录用） |
 | `GET /api/user` | 是 | 当前用户信息（注意：无尾斜杠） |
 
 ## 词汇管理
@@ -49,4 +53,4 @@
 
 ## 环境变量
 
-见 `vocabulary_book_backend/.env.example` 与 `docs/deployment.md`：`DB_*`、`REDIS_*`、`JWT_SECRET_KEY`（必填）、`ALIBABA_CLOUD_*`/`SMS_*`（短信）、`WECHAT_MINI_*`（小程序登录）、`DICTIONARY_*`（词典，可选）。
+见 `vocabulary_book_backend/.env.example` 与 `docs/deployment.md`：`DB_*`、`REDIS_*`、`JWT_SECRET_KEY`（必填）、`ALIBABA_CLOUD_*`/`SMS_*`（短信）、`WECHAT_MINI_*`（小程序登录）、`WECHAT_OPEN_*`（扩展扫码登录，可选）、`DICTIONARY_*`（词典，可选）。

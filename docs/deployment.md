@@ -30,6 +30,7 @@ Chrome 扩展 ──HTTPS──▶ Nginx(443) ──▶ gunicorn(7001) ──▶
 | `JWT_SECRET_KEY` | 随机长字符串（`openssl rand -hex 32`），未配置时接口直接报 500 |
 | `ALIBABA_CLOUD_ACCESS_KEY_*` / `SMS_API_*` | 阿里云短信 |
 | `WECHAT_MINI_APP_ID` / `WECHAT_MINI_APP_SECRET` | 可选，微信小程序一键登录；留空时仅短信登录可用 |
+| `WECHAT_OPEN_APP_ID` / `WECHAT_OPEN_APP_SECRET` / `WECHAT_OPEN_REDIRECT_URI` | 可选，Chrome 扩展微信扫码登录（开放平台「网站应用」）；留空时扩展无法登录。`REDIRECT_URI` 须指向本服务的 `https://<域名>/api/user/login/wechat/callback/`，且与开放平台配置的回调域名一致 |
 | `DICTIONARY_API_BASE` / `DICTIONARY_TIMEOUT` | 可选，词典释义查询（默认免费 Free Dictionary API）；生产机需可访问外网 |
 
 ## 方式一：Docker Compose（推荐）
