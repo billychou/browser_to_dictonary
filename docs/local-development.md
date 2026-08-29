@@ -39,17 +39,16 @@ cd vocabulary_book_backend
 uv sync                                  # 安装依赖到 .venv
 
 # 配置文件（.env 已被 .gitignore 忽略，切勿提交）
-cp .env.example src/vocabulary_book_backend/.env
+cp .env.example .env
 ```
 
-编辑 `src/vocabulary_book_backend/.env`：
+编辑 `.env`：
 
 - `DB_PASSWORD`：与上一步 MySQL 密码一致
 - `JWT_SECRET_KEY`：必填，`openssl rand -hex 32` 生成；缺失时接口直接 500
 - 可选：`ALIBABA_CLOUD_*` / `SMS_*`（短信登录）、`WECHAT_MINI_*`（小程序微信登录）、`DICTIONARY_*`（词典，默认免费源）
 
 ```bash
-cd src/vocabulary_book_backend
 uv run flask --app wsgi.py upgrade-db    # 数据库迁移（首次必做）
 uv run python app.py                     # 启动，监听 7001
 ```

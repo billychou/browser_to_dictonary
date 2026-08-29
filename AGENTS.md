@@ -10,7 +10,7 @@ This monorepo contains a Chrome extension, its WeChat mini-program companion, an
 - `wechat-mini/` — WeChat mini-program client (native WXML/WXSS/JS, no build step).
   - Shares the backend account & data with the extension; pages under `pages/` (`login`, `words`, `study`, `profile`), shared logic in `utils/`, server address in `config/api.js`. See `wechat-mini/README.md`.
 - `vocabulary_book_backend/` — Flask API (Python ≥3.9).
-  - Source: `src/vocabulary_book_backend/` with layers `controllers/` (Flask-RESTful resources under `/api/...`), `services/` (business logic), `models/` (SQLAlchemy), `configs/` (pydantic-settings), `extensions/`, `libs/`, `fields/`, `migrations/` (Alembic via Flask-Migrate).
+  - Source: flat layout directly under `vocabulary_book_backend/` (`app.py`, `app_factory.py`, `wsgi.py` at the root) with layers `controllers/` (Flask-RESTful resources under `/api/...`), `services/` (business logic), `models/` (SQLAlchemy), `configs/` (pydantic-settings), `extensions/`, `libs/`, `fields/`, `migrations/` (Alembic via Flask-Migrate).
   - Tests: `vocabulary_book_backend/tests/`.
   - API reference (endpoints, auth, conventions): `docs/api.md`.
 
@@ -28,10 +28,10 @@ This monorepo contains a Chrome extension, its WeChat mini-program companion, an
 
 **Backend** (`vocabulary_book_backend/`, uv preferred; `poetry.lock` also present):
 - `uv sync` — install dependencies into `.venv`.
-- `cd src/vocabulary_book_backend && python app.py` — run locally on port 7001.
+- `uv run python app.py` — run locally on port 7001.
 - `uv run pytest tests/` — run tests from `vocabulary_book_backend/`.
 - `upgrade-db` (registered CLI command) — apply database migrations.
-- `gunicorn -c deploy/gunicorn.conf.py wsgi:app` — production server (WSGI entry `src/vocabulary_book_backend/wsgi.py`).
+- `gunicorn -c deploy/gunicorn.conf.py wsgi:app` — production server (WSGI entry `wsgi.py` at the backend root).
 
 ## Coding Style & Naming Conventions
 

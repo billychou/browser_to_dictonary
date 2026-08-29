@@ -15,8 +15,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-install-project --no-cache
 
-COPY src ./src
-COPY deploy ./deploy
+# 应用代码与 pyproject 同级，无关文件由 .dockerignore 排除
+COPY . .
 
 EXPOSE 7001
 

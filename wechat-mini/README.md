@@ -28,7 +28,7 @@ wechat-mini/
 
 ## 本地运行
 
-1. 启动后端：`cd vocabulary_book_backend && uv run python src/vocabulary_book_backend/app.py`（需 MySQL/Redis 与 `.env`）。
+1. 启动后端：`cd vocabulary_book_backend && uv run python app.py`（需 MySQL/Redis 与 `.env`）。
 2. 微信开发者工具「导入项目」，目录选择 `wechat-mini/`（AppID 可用测试号）。
 3. 详情 → 本地设置 → 勾选「不校验合法域名」（开发环境连本地 7001 必需）。
 4. 编译后用手机号验证码登录，即可看到与浏览器插件一致的词汇。

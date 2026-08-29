@@ -1,5 +1,5 @@
 # 生产/类生产环境一键部署：MySQL + Redis + API
-# 用法：在 src/vocabulary_book_backend/.env 中配置密钥后执行
+# 用法：在本目录 .env 中配置密钥后执行
 #   docker compose up -d --build
 services:
   mysql:
@@ -32,7 +32,7 @@ services:
     build: .
     restart: unless-stopped
     env_file:
-      - src/vocabulary_book_backend/.env
+      - .env
     environment:
       # 容器网络内使用服务名覆盖 .env 中的 localhost
       DB_HOST: mysql

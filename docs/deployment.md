@@ -21,7 +21,7 @@ Chrome 扩展 ──HTTPS──▶ Nginx(443) ──▶ gunicorn(7001) ──▶
 
 ## 环境配置
 
-复制 `vocabulary_book_backend/.env.example` 为 `src/vocabulary_book_backend/.env` 并填写：
+复制 `vocabulary_book_backend/.env.example` 为 `vocabulary_book_backend/.env` 并填写：
 
 | 必填 | 说明 |
 |---|---|
@@ -49,7 +49,6 @@ docker compose logs -f api       # 查看迁移与启动日志
 ```bash
 cd vocabulary_book_backend
 uv sync --locked --no-install-project
-cd src/vocabulary_book_backend
 uv run flask --app wsgi.py upgrade-db        # 手动迁移
 ```
 
@@ -62,7 +61,7 @@ After=network.target mysql.service redis.service
 
 [Service]
 WorkingDirectory=/opt/browser_to_dictonary/vocabulary_book_backend
-EnvironmentFile=/opt/browser_to_dictonary/vocabulary_book_backend/src/vocabulary_book_backend/.env
+EnvironmentFile=/opt/browser_to_dictonary/vocabulary_book_backend/.env
 ExecStart=/opt/browser_to_dictonary/vocabulary_book_backend/.venv/bin/gunicorn -c deploy/gunicorn.conf.py wsgi:app
 Restart=always
 

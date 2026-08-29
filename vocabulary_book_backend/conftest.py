@@ -11,6 +11,6 @@ Copyright: @sanfendi
 import pathlib
 import sys
 
-SRC_PATH = pathlib.Path(__file__).parent / "src" / "vocabulary_book_backend"
+SRC_PATH = pathlib.Path(__file__).parent
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))

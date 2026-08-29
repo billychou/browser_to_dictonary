@@ -12,7 +12,7 @@ Copyright: @sanfendi
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "src" / "vocabulary_book_backend"))
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 from app_factory import create_app
 from models.engine import db
