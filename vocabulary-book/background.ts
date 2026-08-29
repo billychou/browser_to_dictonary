@@ -3,6 +3,7 @@ import {
   apiFetch,
   flushPendingWords,
   getUserInfo,
+  isLoggedIn,
   postWord,
   queuePendingWord,
   setUserInfo
@@ -25,8 +26,31 @@ async function notifyTab(tabId: number, message: object) {
   }
 }
 
-// 保存单词：成功顺带冲刷离线队列，失败进入队列等待重试（P1-4）
+// 未登录引导：10 秒内最多打开一次扩展登录页，避免连续保存时打开一堆标签页
+let lastLoginPromptAt = 0
+
+async function promptWechatLogin(tabId?: number) {
+  if (tabId) {
+    await notifyTab(tabId, {
+      action: "showNotification",
+      messageType: "warn",
+      message: "未登录，请先使用微信扫码登录（单词已暂存，登录后自动同步）"
+    })
+  }
+  const now = Date.now()
+  if (now - lastLoginPromptAt > 10_000) {
+    lastLoginPromptAt = now
+    await chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") })
+  }
+}
+
+// 保存单词：未登录时提示微信扫码登录并暂存；成功顺带冲刷离线队列，失败进入队列等待重试（P1-4）
 async function saveWord(word: string, tabId?: number) {
+  if (!(await isLoggedIn())) {
+    await queuePendingWord(word)
+    await promptWechatLogin(tabId)
+    return { ok: false, needLogin: true }
+  }
   const ok = await postWord(word)
   if (ok) {
     await flushPendingWords()
@@ -46,7 +70,7 @@ async function saveWord(word: string, tabId?: number) {
       })
     }
   }
-  return ok
+  return { ok }
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -78,9 +102,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: false, message: "词汇内容不能为空" })
           return
         }
-        const ok = await saveWord(word)
-        if (ok) {
+        const result = await saveWord(word)
+        if (result.ok) {
           sendResponse({ success: true, data: word })
+        } else if (result.needLogin) {
+          sendResponse({
+            success: false,
+            needLogin: true,
+            message:
+              "未登录，请先使用微信扫码登录（单词已暂存，登录后自动同步）"
+          })
         } else {
           sendResponse({
             success: false,
@@ -125,27 +156,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
         break
       }
-      case "getSmsCode": {
+      case "wechatLoginStart": {
+        // 微信扫码登录第一步：向后端申请一次性票据，并打开官方二维码页
         try {
-          const data = await apiFetch("/api/user/login/sms_send/", {
-            method: "POST",
-            body: JSON.stringify({ phone: request.phone })
+          const data = await apiFetch("/api/user/login/wechat/ticket/", {
+            method: "POST"
           })
+          if (data?.success && data.data?.qrcode_url) {
+            await chrome.tabs.create({ url: data.data.qrcode_url })
+          }
           sendResponse(data)
         } catch (error) {
           sendResponse({ success: false, message: (error as Error).message })
         }
         break
       }
-      case "userLogin": {
+      case "wechatLoginPoll": {
+        // 微信扫码登录第四步：轮询票据状态，确认后持久化登录态
         try {
-          const data = await apiFetch("/api/user/login/", {
-            method: "POST",
-            body: JSON.stringify({ phone: request.phone, code: request.code })
-          })
-          // 登录成功后持久化用户信息（含 JWT）
-          if (data?.success && data.data) {
-            await setUserInfo(data.data)
+          const data = await apiFetch(
+            `/api/user/login/wechat/ticket/${encodeURIComponent(request.ticket || "")}/`
+          )
+          if (data?.success && data.data?.status === "confirmed") {
+            await setUserInfo({
+              user_info: data.data.user_info,
+              token: data.data.token
+            })
+            // 登录成功后冲刷离线队列，未登录时暂存的单词自动同步
+            await flushPendingWords()
           }
           sendResponse(data)
         } catch (error) {
