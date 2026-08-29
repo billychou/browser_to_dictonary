@@ -26,7 +26,6 @@ dependencies = [
 
 [tool.poetry]
 package-mode = false
-packages = [{include = "vocabulary_book_backend", from = "src"}]
 
 
 [build-system]

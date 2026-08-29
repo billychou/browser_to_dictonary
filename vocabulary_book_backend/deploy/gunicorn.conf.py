@@ -15,8 +15,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 应用位于 src/vocabulary_book_backend，统一切换工作目录保证相对导入与 .env 加载正确
-chdir = str(BASE_DIR / "src" / "vocabulary_book_backend")
+# 应用代码与 .env 位于项目根目录，统一切换工作目录保证相对导入与 .env 加载正确
+chdir = str(BASE_DIR)
 
 bind = os.environ.get("BIND", "0.0.0.0:7001")
 # 可用 WEB_CONCURRENCY 覆盖，默认 (2 x CPU) + 1

@@ -2,7 +2,7 @@
 # 容器启动脚本：先执行数据库迁移，再启动 gunicorn
 set -euo pipefail
 
-cd /app/src/vocabulary_book_backend
+cd /app
 
 echo "==> Running database migrations (upgrade-db)..."
 uv run flask --app wsgi.py upgrade-db
