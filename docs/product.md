@@ -18,9 +18,10 @@
 | 保存后页面高亮选中文本 | 自动触发（内容脚本 `contents/highlight.ts`） | ✅ 可用（实现较粗糙） |
 | 保存成功页面通知 | 右上角绿色 toast，3 秒自动消失 | ✅ 可用 |
 | 弹窗手动输入单词保存 | 扩展 popup"词汇书"页 | ✅ 可用 |
-| 手机号 + 短信验证码登录 | 扩展 popup 登录页（阿里云短信） | ✅ 可用，首次登录自动注册 |
-| JWT 令牌签发 | 登录成功后返回 | ⚠️ 已签发，但**尚未被任何业务接口使用** |
-| 微信网页登录 | `services/wechat_service.py` | ⚠️ 代码保留，入口未接通 |
+| 微信扫码登录（Chrome 扩展） | 扩展 popup 登录页（微信开放平台网站应用） | ✅ 可用，首次登录自动注册；需配置 `WECHAT_OPEN_*` |
+| 微信一键登录（小程序） | 小程序登录页（`wx.login` → code2session） | ✅ 可用；需配置 `WECHAT_MINI_*`，未配置回退短信登录 |
+| 手机号 + 短信验证码登录 | 小程序登录页兜底（阿里云短信） | ✅ 可用，首次登录自动注册 |
+| JWT 令牌签发 | 登录成功后返回，业务接口 `Bearer` 鉴权 | ✅ 可用 |
 | 词汇列表展示 / 删除 / 编辑 | 无前端界面 | ❌ 服务层已有 `query/delete/update`，未暴露为完整 API 与 UI |
 
 ## 3. 典型用户旅程
@@ -92,5 +93,5 @@
 | 扩展 | Plasmo 0.90（MV3）、React 18、TypeScript 5、Tailwind CSS 3、pnpm |
 | 后端 | Python ≥3.9、Flask 3、Flask-RESTful、Flask-SQLAlchemy、Flask-Migrate、PyJWT、pydantic-settings |
 | 存储 | MySQL、Redis |
-| 三方服务 | 阿里云短信（dysmsapi）、微信开放平台（代码保留未启用） |
+| 三方服务 | 阿里云短信（dysmsapi）、微信开放平台（小程序 code2session + 网站应用扫码登录）、免费词典 API |
 | CI | `.github/workflows/submit.yml`：`pnpm build` + `pnpm package` + bpp 自动提交商店（手动触发） |
