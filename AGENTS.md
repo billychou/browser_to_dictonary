@@ -27,6 +27,7 @@ This monorepo contains a Chrome extension, its WeChat mini-program companion, an
 **Full local setup without Docker** (Homebrew MySQL/Redis, all three clients): `docs/local-development.md`.
 
 **Backend** (`vocabulary_book_backend/`, uv preferred; `poetry.lock` also present):
+- `./dev.sh` — one-command local startup: ensures MySQL/Redis are running (brew), generates `.env` on first run, syncs deps, migrates, starts port 7001.
 - `uv sync` — install dependencies into `.venv`.
 - `uv run python app.py` — run locally on port 7001.
 - `uv run pytest tests/` — run tests from `vocabulary_book_backend/`.

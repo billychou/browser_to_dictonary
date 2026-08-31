@@ -34,6 +34,15 @@ mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'your-db-password';
 
 ## 3. 后端
 
+一键启动（推荐）：
+
+```bash
+cd vocabulary_book_backend
+./dev.sh    # MySQL/Redis 未运行时自动拉起；首次自动生成 .env；跑迁移并启动 :7001
+```
+
+首次运行会从 `.env.example` 生成 `.env` 并自动填充 `JWT_SECRET_KEY`，把 `DB_PASSWORD` 填好后重新运行即可。以下为等价的手动步骤：
+
 ```bash
 cd vocabulary_book_backend
 uv sync                                  # 安装依赖到 .venv
